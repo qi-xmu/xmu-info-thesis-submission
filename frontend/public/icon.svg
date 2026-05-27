@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#2563eb"/>
+  <text x="256" y="220" text-anchor="middle" font-family="system-ui, sans-serif" font-size="140" font-weight="bold" fill="white">论文</text>
+  <text x="256" y="360" text-anchor="middle" font-family="system-ui, sans-serif" font-size="80" fill="#bfdbfe">追踪</text>
+</svg>

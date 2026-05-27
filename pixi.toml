@@ -1,0 +1,26 @@
+[workspace]
+name = "xmu-info-thesis-submission"
+version = "0.1.0"
+description = "厦门大学信息学院研究生毕业论文流程跟踪系统"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
+
+[dependencies]
+python = ">=3.11"
+nodejs = ">=20"
+
+[pypi-dependencies]
+fastapi = ">=0.115"
+uvicorn = ">=0.30"
+sqlalchemy = ">=2.0"
+pydantic = ">=2.0"
+fastapi-cli = ">=0.0.5"
+
+[tasks]
+seed = { cmd = "python -m app.seed", cwd = "backend" }
+backend = { cmd = "fastapi dev --host 127.0.0.1 --port 8000 app/main.py", cwd = "backend", depends-on = ["seed"] }
+frontend-install = { cmd = "npm install", cwd = "frontend" }
+frontend-dev = { cmd = "npm run dev", cwd = "frontend", depends-on = ["frontend-install"] }
+frontend-build = { cmd = "npm run build", cwd = "frontend", depends-on = ["frontend-install"] }
+dev = { cmd = "pixi run backend & pixi run frontend-dev", depends-on = ["seed", "frontend-install"] }
+build = { cmd = "pixi run frontend-build", depends-on = ["seed"] }

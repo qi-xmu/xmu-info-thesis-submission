@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Database
+backend/data/tracker.db
+
+# Node
+node_modules/
+frontend/dist/
+
+# Pixi
+.pixi/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

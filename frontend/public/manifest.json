@@ -1,0 +1,17 @@
+{
+  "name": "厦门大学信息学院毕业论文流程跟踪",
+  "short_name": "论文流程跟踪",
+  "description": "研究生毕业论文送审、答辩及申请学位流程跟踪系统",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
