@@ -1,13 +1,6 @@
 import { useState, useRef } from 'react'
 import type { RoleFilter, ProgressMap, Phase, FullData } from '../types'
 
-const ROLES: { value: RoleFilter; label: string; desc: string }[] = [
-  { value: 'all', label: '全体', desc: '不筛选，显示所有任务' },
-  { value: 'doctor', label: '博士', desc: '学术型博士研究生' },
-  { value: 'master', label: '学术硕士', desc: '学术型硕士研究生' },
-  { value: 'professional', label: '专业硕士', desc: '专业学位硕士研究生' },
-]
-
 function exportData(progress: ProgressMap, phases: Phase[]) {
   const data = {
     exported_at: new Date().toISOString(),
@@ -99,11 +92,11 @@ export function SettingsPanel({
 
     if (importChoice === 'both') {
       onImportProgress(pendingImport.progress)
-      onImportData({ phases: pendingImport.phases, updated_at: data.updated_at })
+      onImportData({ site: data.site, phases: pendingImport.phases, updated_at: data.updated_at })
     } else if (importChoice === 'progress') {
       onImportProgress(pendingImport.progress)
     } else if (importChoice === 'tasks') {
-      onImportData({ phases: pendingImport.phases, updated_at: data.updated_at })
+      onImportData({ site: data.site, phases: pendingImport.phases, updated_at: data.updated_at })
     }
 
     setImportState('idle')
@@ -142,7 +135,10 @@ export function SettingsPanel({
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-3">身份设置</h3>
             <div className="space-y-2">
-              {ROLES.map((r) => (
+              {[
+                { value: 'all' as RoleFilter, label: '全体', desc: '不筛选，显示所有任务' },
+                ...data.site.roles.map((r) => ({ ...r, value: r.value as RoleFilter })),
+              ].map((r) => (
                 <button
                   key={r.value}
                   onClick={() => onRoleChange(r.value)}

@@ -64,6 +64,7 @@ export default function App() {
   }
 
   const effectiveRole: RoleFilter = role ?? 'all'
+  const roles = data.site.roles
 
   const selectedPhase = selectedPhaseId
     ? data.phases.find((p) => p.id === selectedPhaseId) ?? null
@@ -71,7 +72,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {role === null && <RoleModal onSelect={handleRoleSelect} />}
+      {role === null && <RoleModal roles={roles} onSelect={handleRoleSelect} />}
 
       <SettingsPanel
         open={settingsOpen}
@@ -132,6 +133,7 @@ export default function App() {
         <main className="flex-1 min-w-0">
           <div className="max-w-3xl mx-auto px-4 py-8">
             <Header
+              site={data.site}
               progress={progress}
               phases={data.phases}
               onSettingsClick={() => setSettingsOpen(true)}
@@ -141,6 +143,7 @@ export default function App() {
               phases={data.phases}
               progress={progress}
               role={effectiveRole}
+              roles={roles}
               onToggle={toggleTask}
               onToggleSubTask={toggleSubTask}
               onToggleSubFile={toggleSubFile}
@@ -156,6 +159,7 @@ export default function App() {
                   onToggleSubTask={toggleSubTask}
                   onToggleSubFile={toggleSubFile}
                   role={effectiveRole}
+                  roles={roles}
                   defaultExpanded
                 />
               ) : (
@@ -168,6 +172,7 @@ export default function App() {
                     onToggleSubTask={toggleSubTask}
                     onToggleSubFile={toggleSubFile}
                     role={effectiveRole}
+                    roles={roles}
                   />
                 ))
               )}
@@ -181,7 +186,7 @@ export default function App() {
 
         {/* 右侧时间轴 */}
         <aside className="hidden xl:block w-64 flex-shrink-0 sticky top-0 h-screen overflow-y-auto border-l border-gray-200 bg-white p-4">
-          <Timeline phases={data.phases} />
+          <Timeline phases={data.phases} role={effectiveRole} selectedPhaseId={selectedPhaseId} />
         </aside>
       </div>
     </div>

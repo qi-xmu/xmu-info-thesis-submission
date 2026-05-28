@@ -38,6 +38,7 @@ class TimeNode(Base):
     name = Column(Text)
     deadline = Column(Text)
     remark = Column(Text)
+    applies_to = Column(Text, default="all")
 
     task = relationship("Task", back_populates="time_nodes")
 

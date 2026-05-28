@@ -1,11 +1,14 @@
-import type { ProgressMap, Phase } from '../types'
+import type { ProgressMap, Phase, SiteInfo } from '../types'
 import { ProgressBar } from './ProgressBar'
+import { MarkdownText } from './MarkdownText'
 
 export function Header({
+  site,
   progress,
   phases,
   onSettingsClick,
 }: {
+  site: SiteInfo
   progress: ProgressMap
   phases: Phase[]
   onSettingsClick: () => void
@@ -17,7 +20,7 @@ export function Header({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-xl font-bold text-gray-800">
-          厦门大学信息学院 研究生毕业论文流程跟踪
+          {site.title}
         </h1>
         <button
           onClick={onSettingsClick}
@@ -31,9 +34,9 @@ export function Header({
           </svg>
         </button>
       </div>
-      <p className="text-xs text-gray-500 mb-4">
-        来源：信息学院（国家示范性软件学院）
-      </p>
+      <div className="text-sm text-gray-500 mb-4">
+        <MarkdownText>{site.description}</MarkdownText>
+      </div>
 
       <ProgressBar value={completedCount} total={allTasks.length} />
     </div>

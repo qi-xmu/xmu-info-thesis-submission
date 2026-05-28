@@ -24,3 +24,5 @@ frontend-dev = { cmd = "npm run dev", cwd = "frontend", depends-on = ["frontend-
 frontend-build = { cmd = "npm run build", cwd = "frontend", depends-on = ["frontend-install"] }
 dev = { cmd = "pixi run backend & pixi run frontend-dev", depends-on = ["seed", "frontend-install"] }
 build = { cmd = "pixi run frontend-build", depends-on = ["seed"] }
+db-export = { cmd = "python -m app.db_tool export", cwd = "backend" }
+db-import = { cmd = "python -m app.db_tool import", cwd = "backend" }

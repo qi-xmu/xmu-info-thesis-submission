@@ -1,4 +1,4 @@
-import type { Phase, ProgressMap, RoleFilter } from '../types'
+import type { Phase, ProgressMap, RoleFilter, RoleOption } from '../types'
 import { TaskItem } from './TaskItem'
 import { TimeBadge } from './TimeBadge'
 
@@ -6,6 +6,7 @@ export function CurrentTask({
   phases,
   progress,
   role,
+  roles,
   onToggle,
   onToggleSubTask,
   onToggleSubFile,
@@ -13,6 +14,7 @@ export function CurrentTask({
   phases: Phase[]
   progress: ProgressMap
   role: RoleFilter
+  roles: RoleOption[]
   onToggle: (taskId: number) => void
   onToggleSubTask: (id: number) => void
   onToggleSubFile: (id: number) => void
@@ -55,6 +57,7 @@ export function CurrentTask({
         onToggleSubTask={onToggleSubTask}
         onToggleSubFile={onToggleSubFile}
         role={role}
+        roles={roles}
         variant="featured"
       />
 
@@ -64,9 +67,12 @@ export function CurrentTask({
             <span>下一个：</span>
             <span className="text-gray-600 font-medium truncate">{next.title}</span>
           </div>
-          {next.time_nodes.length > 0 && (
-            <TimeBadge node={next.time_nodes[0]} />
-          )}
+          {(() => {
+            const visibleNodes = next.time_nodes.filter(
+              (tn) => tn.applies_to === 'all' || tn.applies_to === role || role === 'all'
+            )
+            return visibleNodes.length > 0 ? <TimeBadge node={visibleNodes[0]} /> : null
+          })()}
         </div>
       )}
     </div>

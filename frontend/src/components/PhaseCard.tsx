@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Phase, ProgressMap, RoleFilter } from '../types'
+import type { Phase, ProgressMap, RoleFilter, RoleOption } from '../types'
 import { TaskItem } from './TaskItem'
 import { ProgressBar } from './ProgressBar'
 
@@ -10,6 +10,7 @@ export function PhaseCard({
   onToggleSubTask,
   onToggleSubFile,
   role,
+  roles,
   defaultExpanded = true,
 }: {
   phase: Phase
@@ -18,6 +19,7 @@ export function PhaseCard({
   onToggleSubTask: (id: number) => void
   onToggleSubFile: (id: number) => void
   role: RoleFilter
+  roles: RoleOption[]
   defaultExpanded?: boolean
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded)
@@ -74,6 +76,7 @@ export function PhaseCard({
               onToggleSubTask={onToggleSubTask}
               onToggleSubFile={onToggleSubFile}
               role={role}
+              roles={roles}
             />
           ))}
         </div>

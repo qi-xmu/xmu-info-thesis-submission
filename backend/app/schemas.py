@@ -2,11 +2,25 @@ from pydantic import BaseModel
 from typing import Optional
 
 
+class RoleOption(BaseModel):
+    value: str
+    label: str
+    desc: str
+    color: Optional[str] = None
+
+
+class SiteInfo(BaseModel):
+    title: str
+    description: str
+    roles: list[RoleOption] = []
+
+
 class TimeNodeOut(BaseModel):
     id: int
     name: Optional[str] = None
     deadline: Optional[str] = None
     remark: Optional[str] = None
+    applies_to: str = "all"
 
     model_config = {"from_attributes": True}
 
@@ -52,5 +66,6 @@ class PhaseOut(BaseModel):
 
 
 class FullDataResponse(BaseModel):
+    site: SiteInfo
     phases: list[PhaseOut]
     updated_at: str

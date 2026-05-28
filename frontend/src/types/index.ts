@@ -1,8 +1,22 @@
+export interface RoleOption {
+  value: string
+  label: string
+  desc: string
+  color?: string
+}
+
+export interface SiteInfo {
+  title: string
+  description: string
+  roles: RoleOption[]
+}
+
 export interface TimeNode {
   id: number
   name: string | null
   deadline: string | null
   remark: string | null
+  applies_to: string
 }
 
 export interface SubTask {
@@ -38,6 +52,7 @@ export interface Phase {
 }
 
 export interface FullData {
+  site: SiteInfo
   phases: Phase[]
   updated_at: string
 }

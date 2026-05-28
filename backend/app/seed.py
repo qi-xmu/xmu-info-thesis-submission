@@ -42,6 +42,7 @@ def run_seed():
                         name=tn_data.get("name"),
                         deadline=tn_data.get("deadline"),
                         remark=tn_data.get("remark"),
+                        applies_to=tn_data.get("applies_to", "all"),
                     )
                     db.add(tn)
 

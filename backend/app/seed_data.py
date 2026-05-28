@@ -4,6 +4,15 @@ https://informatics.xmu.edu.cn/info/2301/178021.htm
 """
 
 SEED_DATA = {
+    "site": {
+        "title": "厦门大学信息学院 研究生毕业论文流程跟踪",
+        "description": "来源：[信息学院（国家示范性软件学院）](https://informatics.xmu.edu.cn/)。详细流程说明见[原文链接](https://informatics.xmu.edu.cn/info/2301/178021.htm)。",
+        "roles": [
+            {"value": "doctor", "label": "博士", "desc": "学术型博士研究生", "color": "purple"},
+            {"value": "master", "label": "学术硕士", "desc": "学术型硕士研究生", "color": "blue"},
+            {"value": "professional", "label": "专业硕士", "desc": "专业学位硕士研究生", "color": "green"},
+        ],
+    },
     "phases": [
         {
             "title": "一、定稿送审",
@@ -63,7 +72,7 @@ SEED_DATA = {
                         {"title": "预答辩通过后可再次修改，经导师确认后再次定稿", "applies_to": "doctor"},
                         {"title": "严格按照论文格式规范排版", "applies_to": "all"},
                     ],
-                    "time_nodes": [{'name': '预答辩截止', 'deadline': '2026年3月中旬', 'remark': '博士生预答辩一般安排在正式答辩前3个月'}, {'name': '论文定稿', 'deadline': '2026年4月初', 'remark': ''}],
+                    "time_nodes": [{'name': '预答辩截止', 'deadline': '2026年3月中旬', 'remark': '博士生预答辩一般安排在正式答辩前3个月', 'applies_to': 'doctor'}, {'name': '论文定稿', 'deadline': '2026年4月初', 'remark': ''}],
                     "doctor_notes": [
                         "博士生首次定稿后必须进行预答辩",
                         "预答辩一般应安排在正式答辩的3个月前进行",

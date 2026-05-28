@@ -1,12 +1,12 @@
-import type { RoleFilter } from '../types'
+import type { RoleFilter, RoleOption } from '../types'
 
-const ROLES: { value: RoleFilter; label: string; desc: string }[] = [
-  { value: 'doctor', label: '博士', desc: '学术型博士研究生' },
-  { value: 'master', label: '学术硕士', desc: '学术型硕士研究生' },
-  { value: 'professional', label: '专业硕士', desc: '专业学位硕士研究生' },
-]
-
-export function RoleModal({ onSelect }: { onSelect: (role: RoleFilter) => void }) {
+export function RoleModal({
+  roles,
+  onSelect,
+}: {
+  roles: RoleOption[]
+  onSelect: (role: RoleFilter) => void
+}) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm mx-4">
@@ -18,10 +18,10 @@ export function RoleModal({ onSelect }: { onSelect: (role: RoleFilter) => void }
         </p>
 
         <div className="space-y-3">
-          {ROLES.map((r) => (
+          {roles.map((r) => (
             <button
               key={r.value}
-              onClick={() => onSelect(r.value)}
+              onClick={() => onSelect(r.value as RoleFilter)}
               className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors text-left"
             >
               <div className="flex-1">
