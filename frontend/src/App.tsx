@@ -23,15 +23,15 @@ function saveRole(role: RoleFilter) {
 }
 
 export default function App() {
-  const { 
-    data, 
-    progress, 
-    toggleTask, 
-    toggleSubTask, 
-    toggleSubFile, 
-    resetProgress, 
+  const {
+    data,
+    progress,
+    toggleTask,
+    toggleSubTask,
+    toggleSubFile,
+    resetProgress,
     resetAll,
-    importProgress, 
+    importProgress,
     importData,
     connectToServer,
     disconnectServer,
@@ -97,7 +97,7 @@ export default function App() {
       {/* 悬浮目录按钮 - 左上角 */}
       <button
         onClick={() => setSidebarOpen(true)}
-        className="lg:hidden fixed top-3 left-3 z-30 p-2 bg-white shadow-md rounded-lg border border-gray-200 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-30 p-2.5 bg-white shadow-lg rounded-xl text-gray-600 hover:text-gray-900 hover:shadow-xl transition-all duration-200"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -107,7 +107,7 @@ export default function App() {
       {/* 悬浮时间轴按钮 - 右上角 */}
       <button
         onClick={() => setTimelineOpen(true)}
-        className="xl:hidden fixed top-3 right-3 z-30 p-2 bg-white shadow-md rounded-lg border border-gray-200 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
+        className="xl:hidden fixed top-4 right-4 z-30 p-2.5 bg-white shadow-lg rounded-xl text-gray-600 hover:text-gray-900 hover:shadow-xl transition-all duration-200"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -117,7 +117,7 @@ export default function App() {
       {/* 悬浮设置按钮 - 右下角 */}
       <button
         onClick={() => setSettingsOpen(true)}
-        className="fixed bottom-4 right-4 xl:right-72 z-30 p-2.5 bg-white shadow-md rounded-full border border-gray-200 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
+        className="fixed bottom-5 right-5 xl:right-72 z-30 p-3 bg-white shadow-lg rounded-xl text-gray-600 hover:text-gray-900 hover:shadow-xl transition-all duration-200"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -130,7 +130,7 @@ export default function App() {
         {/* 目录遮罩 */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -138,20 +138,20 @@ export default function App() {
         {/* 时间轴遮罩 */}
         {timelineOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/30 xl:hidden"
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm xl:hidden"
             onClick={() => setTimelineOpen(false)}
           />
         )}
 
         {/* 左侧目录 */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:w-56 lg:translate-x-0 lg:flex-shrink-0 ${
+          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur border-r border-gray-200/50 p-5 overflow-y-auto transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 lg:flex-shrink-0 ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600"
+            className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -168,7 +168,7 @@ export default function App() {
 
         {/* 中间主内容 */}
         <main className="flex-1 min-w-0">
-          <div className="max-w-3xl mx-auto px-4 py-8">
+          <div className="max-w-3xl mx-auto px-4 py-8 md:px-8">
             <Header
               site={data.site}
               progress={progress}
@@ -214,7 +214,7 @@ export default function App() {
               )}
             </div>
 
-            <div className="mt-8 text-center text-xs text-gray-400">
+            <div className="mt-12 pb-8 text-center text-xs text-gray-400">
               数据更新时间：{data.updated_at}
             </div>
           </div>
@@ -222,13 +222,13 @@ export default function App() {
 
         {/* 右侧时间轴 */}
         <aside
-          className={`fixed inset-y-0 right-0 z-50 w-72 bg-white border-l border-gray-200 pl-4 pr-10 pt-4 pb-8 overflow-y-auto transition-transform duration-200 xl:sticky xl:top-0 xl:h-screen xl:w-64 xl:translate-x-0 xl:flex-shrink-0 xl:px-4 ${
+          className={`fixed inset-y-0 right-0 z-50 w-80 bg-white/95 backdrop-blur border-l border-gray-200/50 p-5 overflow-y-auto transition-transform duration-300 xl:sticky xl:top-0 xl:h-screen xl:w-72 xl:translate-x-0 xl:flex-shrink-0 ${
             timelineOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
           <button
             onClick={() => setTimelineOpen(false)}
-            className="xl:hidden absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600"
+            className="xl:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

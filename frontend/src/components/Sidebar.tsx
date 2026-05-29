@@ -50,8 +50,8 @@ export function Sidebar({
   const isAllMode = selectedPhaseId === null
 
   return (
-    <nav className="text-sm space-y-4">
-      <div className="font-semibold text-gray-700 mb-3 text-base">目录</div>
+    <nav className="text-sm space-y-1">
+      <div className="font-bold text-gray-900 mb-4 text-base tracking-tight">目录</div>
       {phases.map((phase, phaseIdx) => {
         const relevantTasks = phase.tasks.filter(
           (t) => t.applies_to === 'all' || t.applies_to === role || role === 'all'
@@ -63,42 +63,49 @@ export function Sidebar({
 
         return (
           <div key={phase.title}>
-            <div className="flex items-center gap-1 -mx-2">
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => toggleExpand(phase.title)}
-                className="p-1 text-gray-400 hover:text-gray-600 flex-shrink-0"
+                className="p-1 text-gray-400 hover:text-gray-600 flex-shrink-0 transition-colors"
               >
-                <span className="text-xs">{isExpanded ? '▼' : '▶'}</span>
+                <svg
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
 
               <button
                 onClick={() => handlePhaseClick(phaseIdx, phase.title)}
-                className={`flex items-center gap-2 flex-1 text-left transition-colors group rounded-md px-1.5 py-1 ${
+                className={`flex items-center gap-2 flex-1 text-left transition-all duration-150 rounded-lg px-3 py-2 ${
                   isSelected
                     ? 'bg-blue-50 text-blue-700'
-                    : 'hover:text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    isSelected ? 'bg-blue-600' : 'bg-blue-400 group-hover:bg-blue-600'
+                  className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors ${
+                    isSelected ? 'bg-blue-600' : 'bg-gray-300'
                   }`}
                 />
-                <span
-                  className={`font-medium truncate ${
-                    isSelected ? 'text-blue-700' : 'text-gray-700 group-hover:text-blue-600'
-                  }`}
-                >
+                <span className="font-medium truncate flex-1">
                   {phase.title}
                 </span>
-                <span className="text-xs text-gray-400 ml-auto flex-shrink-0">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  completed === total && total > 0
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-gray-100 text-gray-500'
+                }`}>
                   {completed}/{total}
                 </span>
               </button>
             </div>
 
             {isExpanded && (
-              <div className="ml-5 mt-1 space-y-0.5 border-l border-gray-200 pl-3">
+              <div className="ml-4 mt-1 space-y-0.5 pl-3 border-l border-gray-200">
                 {[...relevantTasks]
                   .sort((a, b) => {
                     const ac = progress[taskKey(a.title)] ? 1 : 0
@@ -109,10 +116,10 @@ export function Sidebar({
                     <button
                       key={task.title}
                       onClick={() => handleTaskClick(task.title)}
-                      className={`block w-full text-left truncate py-0.5 hover:text-blue-600 transition-colors ${
+                      className={`block w-full text-left truncate py-1.5 px-2 rounded-md transition-colors text-sm ${
                         progress[taskKey(task.title)]
-                          ? 'text-gray-400 line-through'
-                          : 'text-gray-600'
+                          ? 'text-gray-400 line-through hover:text-gray-500'
+                          : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
                       }`}
                     >
                       {task.title}
@@ -124,28 +131,19 @@ export function Sidebar({
         )
       })}
 
-      {/* 全部阶段 - 与阶段条目同样式 */}
-      <div className="border-t border-gray-100 pt-2 -mx-2">
+      <div className="border-t border-gray-100 pt-3 mt-4">
         <button
           onClick={() => onSelectPhase(null)}
-          className={`flex items-center gap-2 w-full text-left transition-colors group rounded-md px-1.5 py-1 ${
+          className={`flex items-center gap-2 w-full text-left transition-all duration-150 rounded-lg px-3 py-2 ${
             isAllMode
               ? 'bg-blue-50 text-blue-700'
-              : 'hover:text-blue-600'
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
           }`}
         >
-          <span
-            className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-              isAllMode ? 'bg-blue-600' : 'bg-blue-400 group-hover:bg-blue-600'
-            }`}
-          />
-          <span
-            className={`font-medium ${
-              isAllMode ? 'text-blue-700' : 'text-gray-700 group-hover:text-blue-600'
-            }`}
-          >
-            全部阶段
-          </span>
+          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+            isAllMode ? 'bg-blue-600' : 'bg-gray-300'
+          }`} />
+          <span className="font-medium">全部阶段</span>
         </button>
       </div>
     </nav>

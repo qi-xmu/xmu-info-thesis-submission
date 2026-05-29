@@ -47,21 +47,21 @@ export function TaskItem({
   return (
     <div
       id={domId(task.title)}
-      className={`border rounded-lg transition-all scroll-mt-24 ${
+      className={`rounded-xl transition-all duration-200 scroll-mt-24 ${
         completed
-          ? 'bg-green-50 border-green-200'
+          ? 'bg-gradient-to-r from-emerald-50 to-emerald-50/50 border border-emerald-200'
           : featured
-            ? 'border-blue-200 bg-white'
-            : 'bg-white border-gray-200 hover:border-gray-300'
-      } ${featured ? 'p-5' : 'p-3'}`}
+            ? 'bg-gradient-to-r from-blue-50 to-indigo-50/50 border border-blue-200 shadow-sm'
+            : 'bg-gray-50/50 border border-gray-100 hover:border-gray-200 hover:bg-white hover:shadow-sm'
+      } ${featured ? 'p-5' : 'p-4'}`}
     >
       <div className="flex items-start gap-3">
         <input
           type="checkbox"
           checked={completed}
           onChange={onToggle}
-          className={`mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer ${
-            featured ? 'h-5 w-5' : 'h-4 w-4'
+          className={`mt-0.5 ${
+            featured ? 'w-5 h-5' : 'w-4 h-4'
           }`}
         />
         <div className="flex-1 min-w-0">
@@ -72,7 +72,7 @@ export function TaskItem({
                 completed
                   ? 'line-through text-gray-400'
                   : featured
-                    ? 'text-base font-bold text-gray-800'
+                    ? 'text-base font-bold text-gray-900'
                     : 'text-gray-800'
               }`}
             >
@@ -81,7 +81,7 @@ export function TaskItem({
             <div className="flex items-center gap-2 flex-shrink-0">
               {!featured && task.applies_to !== 'all' && (
                 <span
-                  className={`text-xs px-1.5 py-0.5 rounded ${
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                     (ROLE_COLORS[task.applies_to] || ROLE_COLORS.all).bg
                   } ${(ROLE_COLORS[task.applies_to] || ROLE_COLORS.all).text}`}
                 >
@@ -98,7 +98,7 @@ export function TaskItem({
 
           {/* 注意事项 */}
           {task.notes.length > 0 && (
-            <div className={`text-sm text-gray-700 leading-relaxed ${featured ? 'mb-3' : 'mt-2'}`}>
+            <div className={`text-sm text-gray-800 leading-relaxed ${featured ? 'mb-3' : 'mt-2'}`}>
               {task.notes.map((note, i) => (
                 <span key={i}>
                   <MarkdownText compact>{note}</MarkdownText>
@@ -110,27 +110,28 @@ export function TaskItem({
 
           {/* 子任务 */}
           {visibleSubTasks.length > 0 && (
-            <div className={featured ? 'mb-3' : 'mt-2'}>
-              <div className="text-xs font-medium text-gray-500 mb-1.5">子任务</div>
-              <div className="space-y-1">
-                {visibleSubTasks.map((st) => (
+            <div className={featured ? 'mb-3' : 'mt-3'}>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">子任务</div>
+              <div className="space-y-1.5">
+                {visibleSubTasks.map((st, idx) => (
                   <label
                     key={st.title}
-                    className="flex items-center gap-2 text-sm cursor-pointer group"
+                    className="flex items-center gap-2.5 text-base cursor-pointer group py-1 px-2 -mx-2 rounded-lg hover:bg-white/80 transition-colors"
                   >
+                    <span className="text-xs font-medium text-gray-400 w-4 text-right">{idx + 1}.</span>
                     <input
                       type="checkbox"
                       checked={!!progress[stKey(st.title)]}
                       onChange={() => onToggleSubTask(st.title)}
-                      className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="w-3.5 h-3.5"
                     />
-                    <span className={`${
-                      progress[stKey(st.title)] ? 'line-through text-gray-400' : 'text-gray-600'
-                    }`}>
+                    <span className={`font-medium ${
+                      progress[stKey(st.title)] ? 'line-through text-gray-400' : 'text-gray-900 group-hover:text-gray-900'
+                    } transition-colors`}>
                       <MarkdownText compact>{st.title}</MarkdownText>
                     </span>
                     {st.applies_to !== 'all' && (
-                      <span className={`text-xs px-1 py-0.5 rounded ${
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                         (ROLE_COLORS[st.applies_to] || ROLE_COLORS.all).bg
                       } ${(ROLE_COLORS[st.applies_to] || ROLE_COLORS.all).text}`}>
                         {ROLE_LABELS[st.applies_to]}
@@ -144,30 +145,31 @@ export function TaskItem({
 
           {/* 子文件 */}
           {visibleSubFiles.length > 0 && (
-            <div className={featured ? 'mb-3' : 'mt-2'}>
-              <div className="text-xs font-medium text-gray-500 mb-1.5">需提交的材料</div>
+            <div className={featured ? 'mb-3' : 'mt-3'}>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">需提交的材料</div>
               <div className="space-y-2">
-                {visibleSubFiles.map((sf) => (
+                {visibleSubFiles.map((sf, idx) => (
                   <div
                     key={sf.name}
-                    className="border-l-2 border-blue-200 pl-3"
+                    className="border-l-2 border-blue-200 pl-3 py-1"
                   >
-                    <label className="flex items-start gap-2 text-sm cursor-pointer group">
+                    <label className="flex items-start gap-2.5 text-base cursor-pointer group py-1 px-2 -mx-2 rounded-lg hover:bg-white/80 transition-colors">
+                      <span className="text-xs font-medium text-gray-400 w-4 text-right mt-1">{idx + 1}.</span>
                       <input
                         type="checkbox"
                         checked={!!progress[sfKey(sf.name)]}
                         onChange={() => onToggleSubFile(sf.name)}
-                        className="mt-0.5 h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        className="mt-0.5 w-3.5 h-3.5"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className={`font-medium ${
-                            progress[sfKey(sf.name)] ? 'line-through text-gray-400' : 'text-gray-800'
-                          }`}>
+                            progress[sfKey(sf.name)] ? 'line-through text-gray-400' : 'text-gray-900 group-hover:text-gray-900'
+                          } transition-colors`}>
                             {sf.name}
                           </span>
                           {sf.applies_to !== 'all' && (
-                            <span className={`text-xs px-1 py-0.5 rounded ${
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                               (ROLE_COLORS[sf.applies_to] || ROLE_COLORS.all).bg
                             } ${(ROLE_COLORS[sf.applies_to] || ROLE_COLORS.all).text}`}>
                               {ROLE_LABELS[sf.applies_to]}
@@ -175,18 +177,18 @@ export function TaskItem({
                           )}
                         </div>
                         {sf.format && (
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="text-sm text-gray-700 mt-0.5">
                             格式：{sf.format}
                           </div>
                         )}
                         {sf.naming_rule && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-sm text-gray-700">
                             命名：{sf.naming_rule}
                           </div>
                         )}
                         {sf.description && (
-                          <div className="text-xs text-gray-500">
-                            {sf.description}
+                          <div className="text-sm text-gray-700">
+                            说明：{sf.description}
                           </div>
                         )}
                       </div>
