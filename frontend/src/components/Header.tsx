@@ -84,16 +84,16 @@ export function Header({
         </div>
       </div>
 
-      {!collapsed && (
-        <>
+      <div className={`grid transition-all duration-300 ease-in-out ${collapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'}`}>
+        <div className="overflow-hidden">
           <Divider className="mx-6" />
           <div className="px-6 md:px-8 py-4">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-prose leading-relaxed">
               <MarkdownText>{site.description}</MarkdownText>
             </div>
           </div>
-        </>
-      )}
+        </div>
+      </div>
 
       <div className="px-6 md:px-8 pb-5">
         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">

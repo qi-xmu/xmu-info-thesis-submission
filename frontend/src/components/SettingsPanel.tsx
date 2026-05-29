@@ -249,8 +249,8 @@ export function SettingsPanel({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60" onClick={handleClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 animate-modal-backdrop" onClick={handleClose}>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col animate-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
           <h2 className="text-lg font-bold text-gray-800 dark:text-white">设置</h2>
           <button
@@ -527,8 +527,8 @@ export function SettingsPanel({
 
       {/* 任务变化确认对话框 */}
       {updateState === 'confirm' && pendingChanges && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 dark:bg-black/70">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 dark:bg-black/70 animate-modal-backdrop">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto animate-modal-content">
             <div className="p-5 border-b border-gray-100 dark:border-gray-700">
               <h3 className="text-lg font-bold text-gray-800 dark:text-white">确认更新</h3>
             </div>

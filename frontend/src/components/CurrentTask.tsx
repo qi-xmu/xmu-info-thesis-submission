@@ -185,7 +185,7 @@ export function CurrentTask({
   if (selectedPhaseId !== null && !current && lastCompleted) {
     return (
       <div className="mb-6">
-        <SectionTitle dotColor="bg-blue-500 dark:bg-blue-400" pulse>任务转轮</SectionTitle>
+        <SectionTitle dotColor="bg-blue-500 dark:bg-blue-400" pulse subtitle={phases[selectedPhaseId]?.title}>任务转轮</SectionTitle>
 
         <div id="task-wheel-container" className="space-y-3">
           {/* 最后完成的任务（折叠状态） */}
@@ -252,7 +252,7 @@ export function CurrentTask({
 
   return (
     <div className="mb-6">
-      <SectionTitle dotColor="bg-blue-500 dark:bg-blue-400" pulse>任务转轮</SectionTitle>
+      <SectionTitle dotColor="bg-blue-500 dark:bg-blue-400" pulse subtitle={selectedPhaseId !== null ? phases[selectedPhaseId]?.title : undefined}>任务转轮</SectionTitle>
 
       <div id="task-wheel-container" className="space-y-3">
         {/* 折叠的已完成任务 */}

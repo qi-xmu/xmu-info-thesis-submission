@@ -159,31 +159,33 @@ export function Sidebar({
               </button>
             </div>
 
-            {isExpanded && (
-              <div className="ml-4 mt-1 space-y-0.5 pl-3 border-l border-gray-200 dark:border-gray-700">
-                {relevantTasks.map((task) => {
-                  const isCurrentTask = !progress[taskKey(task.title)] && 
-                    phaseIdx === currentPhaseIdx &&
-                    relevantTasks.indexOf(task) === relevantTasks.findIndex(t => !progress[taskKey(t.title)])
-                  
-                  return (
-                    <button
-                      key={task.title}
-                      onClick={() => handleTaskClick(task.title)}
-                      className={`block w-full text-left truncate py-1.5 px-2 rounded-md transition-colors text-sm ${
-                        isCurrentTask
-                          ? 'text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/20'
-                          : progress[taskKey(task.title)]
-                            ? 'text-gray-400 dark:text-gray-500 line-through hover:text-gray-500 dark:hover:text-gray-400'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50'
-                      }`}
-                    >
-                      {task.title}
-                    </button>
-                  )
-                })}
+            <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+              <div className="overflow-hidden">
+                <div className="ml-4 mt-1 space-y-0.5 pl-3 border-l border-gray-200 dark:border-gray-700">
+                  {relevantTasks.map((task) => {
+                    const isCurrentTask = !progress[taskKey(task.title)] && 
+                      phaseIdx === currentPhaseIdx &&
+                      relevantTasks.indexOf(task) === relevantTasks.findIndex(t => !progress[taskKey(t.title)])
+                    
+                    return (
+                      <button
+                        key={task.title}
+                        onClick={() => handleTaskClick(task.title)}
+                        className={`block w-full text-left truncate py-1.5 px-2 rounded-md transition-colors text-sm ${
+                          isCurrentTask
+                            ? 'text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/20'
+                            : progress[taskKey(task.title)]
+                              ? 'text-gray-400 dark:text-gray-500 line-through hover:text-gray-500 dark:hover:text-gray-400'
+                              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50'
+                        }`}
+                      >
+                        {task.title}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            )}
+            </div>
           </div>
         )
       })}

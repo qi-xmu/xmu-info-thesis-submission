@@ -19,8 +19,8 @@ export function RoleModal({
   if (roles.length <= 1) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm mx-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-modal-backdrop">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm mx-4 animate-modal-content">
         <h2 className="text-lg font-bold text-gray-800 text-center mb-2">
           请选择您的身份
         </h2>

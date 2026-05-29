@@ -70,23 +70,25 @@ export function PhaseCard({
 
       <Divider className="mx-5" />
 
-      {expanded && (
-        <div className="p-5 md:p-6 space-y-3">
-          {relevantTasks.map((task) => (
-            <TaskItem
-              key={task.title}
-              task={task}
-              completed={!!progress[taskKey(task.title)]}
-              progress={progress}
-              onToggle={() => onToggle(task.title)}
-              onToggleSubTask={(subTitle) => onToggleSubTask(task.title, subTitle)}
-              onToggleSubFile={(fileName) => onToggleSubFile(task.title, fileName)}
-              role={role}
-              roles={roles}
-            />
-          ))}
+      <div className={`grid transition-all duration-300 ease-in-out ${expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+        <div className="overflow-hidden">
+          <div className="p-5 md:p-6 space-y-3">
+            {relevantTasks.map((task) => (
+              <TaskItem
+                key={task.title}
+                task={task}
+                completed={!!progress[taskKey(task.title)]}
+                progress={progress}
+                onToggle={() => onToggle(task.title)}
+                onToggleSubTask={(subTitle) => onToggleSubTask(task.title, subTitle)}
+                onToggleSubFile={(fileName) => onToggleSubFile(task.title, fileName)}
+                role={role}
+                roles={roles}
+              />
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
