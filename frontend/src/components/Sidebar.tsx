@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Phase, ProgressMap, RoleFilter } from '../types'
 import { taskKey } from '../types'
+import { ProgressBadge } from './ui/ProgressBadge'
 
 export function Sidebar({
   phases,
@@ -154,13 +155,7 @@ export function Sidebar({
                 <span className="font-medium truncate flex-1">
                   {phase.title}
                 </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  completed === total && total > 0
-                    ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                }`}>
-                  {completed}/{total}
-                </span>
+                <ProgressBadge completed={completed} total={total} />
               </button>
             </div>
 

@@ -2,14 +2,21 @@ import { useState, useRef } from 'react'
 import type { RoleFilter, ProgressMap, Phase, FullData, SiteInfo } from '../types'
 import { getServerUrl, testConnection } from '../api/client'
 import type { TaskChanges } from '../store/useStore'
+import { StatusMessage } from './ui/StatusMessage'
+import { ConfirmActions } from './ui/ConfirmActions'
 
-function exportData(progress: ProgressMap, phases: Phase[], site: SiteInfo) {
+function exportData(progress: ProgressMap, phases: Phase[], site: SiteInfo, role: RoleFilter | null) {
+  const serverUrl = getServerUrl()
   const data = {
     exported_at: new Date().toISOString(),
     version: 2,
     site,
     progress,
     phases,
+    settings: {
+      role: role ?? 'all',
+      server_url: serverUrl || '',
+    },
   }
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -91,6 +98,16 @@ export function SettingsPanel({
         } else {
           alert('文件格式不正确，请选择本系统导出的进度文件')
         }
+
+        // Restore settings if present
+        if (json.settings) {
+          if (json.settings.role) {
+            localStorage.setItem('task_tracker_role', json.settings.role)
+          }
+          if (json.settings.server_url) {
+            localStorage.setItem('task_tracker_server_url', json.settings.server_url)
+          }
+        }
       } catch {
         alert('无法解析文件，请确认是 JSON 格式的进度文件')
       }
@@ -151,7 +168,7 @@ export function SettingsPanel({
       setConfirming(true)
       return
     }
-    exportData(progress, phases, data.site)
+    exportData(progress, phases, data.site, role)
     onReset()
     setConfirming(false)
     onClose()
@@ -162,7 +179,7 @@ export function SettingsPanel({
       setConfirmingAll(true)
       return
     }
-    exportData(progress, phases, data.site)
+    exportData(progress, phases, data.site, role)
     onResetAll()
     setConfirmingAll(false)
     onClose()
@@ -300,13 +317,7 @@ export function SettingsPanel({
               </div>
 
               {connectionStatus !== 'idle' && (
-                <div className={`text-xs p-2 rounded ${
-                  connectionStatus === 'success' ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
-                  connectionStatus === 'error' ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
-                  'bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-400'
-                }`}>
-                  {connectionStatus === 'testing' ? '测试中...' : connectionMessage}
-                </div>
+                <StatusMessage status={connectionStatus} message={connectionMessage} />
               )}
 
               <div className="flex gap-2">
@@ -348,12 +359,10 @@ export function SettingsPanel({
                   </div>
 
                   {updateState !== 'idle' && updateState !== 'testing' && updateState !== 'confirm' && (
-                    <div className={`text-xs p-2 rounded ${
-                      updateState === 'success' ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
-                      'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                    }`}>
-                      {updateMessage}
-                    </div>
+                    <StatusMessage
+                      status={updateState === 'success' ? 'success' : 'error'}
+                      message={updateMessage}
+                    />
                   )}
                 </>
               )}
@@ -365,7 +374,7 @@ export function SettingsPanel({
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">数据管理</h3>
             <div className="space-y-2">
               <button
-                onClick={() => exportData(progress, phases, data.site)}
+                onClick={() => exportData(progress, phases, data.site, role)}
                 className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-left transition-all duration-150"
               >
                 <span className="text-gray-400 dark:text-gray-500">↗</span>
@@ -412,18 +421,12 @@ export function SettingsPanel({
                       ))}
                     </div>
                     <div className="flex gap-2 pt-1">
-                      <button
-                        onClick={handleImportConfirm}
-                        className="px-3 py-1 text-sm text-white bg-amber-500 hover:bg-amber-600 rounded transition-colors"
-                      >
-                        确认导入
-                      </button>
-                      <button
-                        onClick={() => { setImportState('idle'); setPendingImport(null); }}
-                        className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded transition-colors"
-                      >
-                        取消
-                      </button>
+                      <ConfirmActions
+                        onConfirm={handleImportConfirm}
+                        onCancel={() => { setImportState('idle'); setPendingImport(null); }}
+                        confirmText="确认导入"
+                        variant="warning"
+                      />
                     </div>
                   </div>
                 ) : (
@@ -469,20 +472,12 @@ export function SettingsPanel({
                 <div className="text-sm text-red-700 dark:text-red-400">
                   确认重置？将自动导出当前数据后清空进度。
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleReset}
-                    className="px-3 py-1 text-sm text-white bg-red-500 hover:bg-red-600 rounded transition-colors"
-                  >
-                    确认重置
-                  </button>
-                  <button
-                    onClick={() => setConfirming(false)}
-                    className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded transition-colors"
-                  >
-                    取消
-                  </button>
-                </div>
+                <ConfirmActions
+                  onConfirm={handleReset}
+                  onCancel={() => setConfirming(false)}
+                  confirmText="确认重置"
+                  variant="danger"
+                />
               </div>
             ) : (
               <button
@@ -506,20 +501,12 @@ export function SettingsPanel({
                   <div className="text-xs text-red-600 dark:text-red-500">
                     所有进度、缓存数据、服务器连接都将被清除。
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleResetAll}
-                      className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors"
-                    >
-                      确认清空
-                    </button>
-                    <button
-                      onClick={() => setConfirmingAll(false)}
-                      className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded transition-colors"
-                    >
-                      取消
-                    </button>
-                  </div>
+                  <ConfirmActions
+                    onConfirm={handleResetAll}
+                    onCancel={() => setConfirmingAll(false)}
+                    confirmText="确认清空"
+                    variant="danger"
+                  />
                 </div>
               ) : (
                 <button

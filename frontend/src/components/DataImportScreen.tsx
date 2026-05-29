@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import type { FullData } from '../types'
 import { testConnection, getServerUrl } from '../api/client'
+import { CardHeader } from './ui/CardHeader'
+import { StatusMessage } from './ui/StatusMessage'
+import { HelpInstructions } from './ui/HelpInstructions'
 
 interface DataImportScreenProps {
   onImportData: (data: FullData) => void
@@ -168,20 +171,7 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
           <div className="hidden md:block md:w-64 md:flex-shrink-0">
             <div className="bg-white rounded-xl shadow-md p-6 space-y-4 sticky top-8">
               <h3 className="font-semibold text-gray-900 text-sm">使用说明</h3>
-              <div className="p-3 bg-blue-50 rounded-xl">
-                <h4 className="font-medium text-blue-800 mb-1 text-xs">1. 获取任务数据</h4>
-                <p className="text-xs text-gray-600">通过上传 JSON 文件或连接后端服务器获取任务数据。</p>
-              </div>
-
-              <div className="p-3 bg-emerald-50 rounded-xl">
-                <h4 className="font-medium text-emerald-800 mb-1 text-xs">2. 追踪任务进度</h4>
-                <p className="text-xs text-gray-600">勾选复选框标记完成状态，进度自动保存到浏览器。</p>
-              </div>
-
-              <div className="p-3 bg-amber-50 rounded-xl">
-                <h4 className="font-medium text-amber-800 mb-1 text-xs">3. 导出与备份</h4>
-                <p className="text-xs text-gray-600">点击设置按钮导出进度为 JSON 文件。</p>
-              </div>
+              <HelpInstructions />
             </div>
           </div>
 
@@ -189,18 +179,11 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
           <div className="flex-1 space-y-4 max-w-md mx-auto md:mx-0">
             {/* 使用默认数据 */}
             <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-3-3v6" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold text-gray-900">使用默认数据</h2>
-                  <p className="text-xs text-gray-500">{siteTitle || '加载内置的 tracker.json 数据'}</p>
-                </div>
-              </div>
+              <CardHeader
+                icon={<svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-3-3v6" /></svg>}
+                title="使用默认数据"
+                description={siteTitle || '加载内置的 tracker.json 数据'}
+              />
               <button
                 onClick={handleLoadDefault}
                 disabled={importing}
@@ -212,17 +195,11 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
 
             {/* 上传文件 */}
             <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold text-gray-900">上传文件</h2>
-                  <p className="text-xs text-gray-500">从本地导入或拖入 JSON 数据文件</p>
-                </div>
-              </div>
+              <CardHeader
+                icon={<svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
+                title="上传文件"
+                description="从本地导入或拖入 JSON 数据文件"
+              />
 
               <input
                 ref={fileRef}
@@ -243,17 +220,11 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
 
             {/* 连接后端 */}
             <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold text-gray-900">连接后端</h2>
-                  <p className="text-xs text-gray-500">输入服务器地址获取数据</p>
-                </div>
-              </div>
+              <CardHeader
+                icon={<svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>}
+                title="连接后端"
+                description="输入服务器地址获取数据"
+              />
 
               <div className="space-y-3">
                 <input
@@ -265,13 +236,10 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
                 />
 
                 {connectionStatus !== 'idle' && (
-                  <div className={`text-xs p-3 rounded-xl ${
-                    connectionStatus === 'success' ? 'bg-emerald-50 text-emerald-700' :
-                    connectionStatus === 'error' ? 'bg-red-50 text-red-700' :
-                    'bg-blue-50 text-blue-700'
-                  }`}>
-                    {connectionStatus === 'testing' ? '测试中...' : connectionMessage}
-                  </div>
+                  <StatusMessage
+                    status={connectionStatus}
+                    message={connectionStatus === 'testing' ? '测试中...' : connectionMessage}
+                  />
                 )}
 
                 <div className="flex gap-3">
@@ -302,21 +270,8 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
             </button>
 
             {showHelp && (
-              <div className="md:hidden bg-white rounded-xl shadow-md p-6 space-y-4">
-                <div className="p-3 bg-blue-50 rounded-xl">
-                  <h3 className="font-medium text-blue-800 mb-1 text-sm">1. 获取任务数据</h3>
-                  <p className="text-xs text-gray-600">通过上传 JSON 文件或连接后端服务器获取任务数据。</p>
-                </div>
-
-                <div className="p-3 bg-emerald-50 rounded-xl">
-                  <h3 className="font-medium text-emerald-800 mb-1 text-sm">2. 追踪任务进度</h3>
-                  <p className="text-xs text-gray-600">勾选复选框标记完成状态，进度自动保存到浏览器。</p>
-                </div>
-
-                <div className="p-3 bg-amber-50 rounded-xl">
-                  <h3 className="font-medium text-amber-800 mb-1 text-sm">3. 导出与备份</h3>
-                  <p className="text-xs text-gray-600">点击设置按钮导出进度为 JSON 文件。</p>
-                </div>
+              <div className="md:hidden bg-white rounded-xl shadow-md p-6">
+                <HelpInstructions />
               </div>
             )}
           </div>

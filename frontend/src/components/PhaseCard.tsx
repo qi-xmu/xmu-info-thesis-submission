@@ -3,6 +3,8 @@ import type { Phase, ProgressMap, RoleFilter, RoleOption } from '../types'
 import { taskKey } from '../types'
 import { TaskItem } from './TaskItem'
 import { ProgressBar } from './ProgressBar'
+import { ProgressBadge } from './ui/ProgressBadge'
+import { Divider } from './ui/Divider'
 
 export function PhaseCard({
   phase,
@@ -61,14 +63,12 @@ export function PhaseCard({
             <div className="w-28 hidden sm:block">
               <ProgressBar value={completedCount} total={relevantTasks.length} />
             </div>
-            <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-              {completedCount}/{relevantTasks.length}
-            </span>
+            <ProgressBadge completed={completedCount} total={relevantTasks.length} />
           </div>
         </div>
       </div>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent mx-5" />
+      <Divider className="mx-5" />
 
       {expanded && (
         <div className="p-5 md:p-6 space-y-3">

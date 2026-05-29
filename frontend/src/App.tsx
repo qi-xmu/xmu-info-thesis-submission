@@ -9,6 +9,7 @@ import { SettingsPanel } from './components/SettingsPanel'
 import { CurrentTask } from './components/CurrentTask'
 import { DataImportScreen } from './components/DataImportScreen'
 import { Fireworks } from './components/Fireworks'
+import { FloatingActionButton } from './components/ui/FloatingActionButton'
 import type { RoleFilter } from './types'
 
 declare const __BUILD_TIME__: string
@@ -165,29 +166,29 @@ export default function App() {
       />
 
       {/* 悬浮目录按钮 - 左上角 */}
-      <button
+      <FloatingActionButton
         onClick={() => setSidebarOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-30 p-2.5 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
+        className="lg:hidden fixed top-4 left-4 z-30 p-2.5 bg-white dark:bg-gray-800"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
-      </button>
+      </FloatingActionButton>
 
       {/* 悬浮时间轴按钮 - 右上角 */}
-      <button
+      <FloatingActionButton
         onClick={() => setTimelineOpen(true)}
-        className="xl:hidden fixed top-4 right-4 z-30 p-2.5 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
+        className="xl:hidden fixed top-4 right-4 z-30 p-2.5 bg-white dark:bg-gray-800"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-      </button>
+      </FloatingActionButton>
 
       {/* 悬浮深色模式按钮 - 设置按钮上方 */}
-      <button
+      <FloatingActionButton
         onClick={() => setDarkMode(!darkMode)}
-        className="fixed bottom-18 right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
+        className="fixed bottom-18 right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800"
       >
         {darkMode ? (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,19 +199,19 @@ export default function App() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
           </svg>
         )}
-      </button>
+      </FloatingActionButton>
 
       {/* 悬浮设置按钮 - 右下角 */}
-      <button
+      <FloatingActionButton
         onClick={() => setSettingsOpen(true)}
-        className="fixed bottom-5 right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
+        className="fixed bottom-5 right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
-      </button>
+      </FloatingActionButton>
 
       <div className="flex">
         {/* 目录遮罩 */}

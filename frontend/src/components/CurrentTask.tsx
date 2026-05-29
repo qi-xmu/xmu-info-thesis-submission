@@ -3,6 +3,8 @@ import type { Phase, ProgressMap, RoleFilter, RoleOption } from '../types'
 import { taskKey } from '../types'
 import { TaskItem } from './TaskItem'
 import { TimeBadge } from './TimeBadge'
+import { SectionTitle } from './ui/SectionTitle'
+import { CompletionBanner } from './ui/CompletionBanner'
 
 interface CollapsedTask {
   title: string
@@ -173,18 +175,8 @@ export function CurrentTask({
   if (selectedPhaseId === null && !current) {
     return (
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
-          <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">任务转轮</h2>
-        </div>
-        <div className="bg-gradient-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5 text-center">
-          <div className="flex items-center justify-center gap-2">
-            <svg className="w-5 h-5 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-emerald-700 dark:text-emerald-400 font-medium">所有任务已完成！</span>
-          </div>
-        </div>
+        <SectionTitle dotColor="bg-emerald-500 dark:bg-emerald-400">任务转轮</SectionTitle>
+        <CompletionBanner message="所有任务已完成！" />
       </div>
     )
   }
@@ -193,10 +185,7 @@ export function CurrentTask({
   if (selectedPhaseId !== null && !current && lastCompleted) {
     return (
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400 animate-pulse" />
-          <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">任务转轮</h2>
-        </div>
+        <SectionTitle dotColor="bg-blue-500 dark:bg-blue-400" pulse>任务转轮</SectionTitle>
 
         <div id="task-wheel-container" className="space-y-3">
           {/* 最后完成的任务（折叠状态） */}
@@ -255,36 +244,22 @@ export function CurrentTask({
   if (!current) {
     return (
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
-          <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">任务转轮</h2>
-        </div>
-        <div className="bg-gradient-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5 text-center">
-          <div className="flex items-center justify-center gap-2">
-            <svg className="w-5 h-5 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-emerald-700 dark:text-emerald-400 font-medium">所有任务已完成！</span>
-          </div>
-        </div>
+        <SectionTitle dotColor="bg-emerald-500 dark:bg-emerald-400">任务转轮</SectionTitle>
+        <CompletionBanner message="所有任务已完成！" />
       </div>
     )
   }
 
   return (
     <div className="mb-6">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400 animate-pulse" />
-        <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">任务转轮</h2>
-      </div>
+      <SectionTitle dotColor="bg-blue-500 dark:bg-blue-400" pulse>任务转轮</SectionTitle>
 
       <div id="task-wheel-container" className="space-y-3">
         {/* 折叠的已完成任务 */}
         {collapsed && (
           <div
             data-type="collapsed"
-            className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl"
-            style={{ willChange: 'transform' }}
+            className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl will-change-transform"
           >
             <input
               type="checkbox"
@@ -310,7 +285,7 @@ export function CurrentTask({
         {/* 当前任务 */}
         <div
           data-type="current"
-          style={{ willChange: 'transform' }}
+          className="will-change-transform"
         >
           <TaskItem
             task={current}
@@ -329,8 +304,7 @@ export function CurrentTask({
         {next && (
           <div
             data-type="next"
-            className="flex items-center justify-between gap-2 px-4 py-2 text-sm text-gray-400 dark:text-gray-500"
-            style={{ willChange: 'transform' }}
+            className="flex items-center justify-between gap-2 px-4 py-2 text-sm text-gray-400 dark:text-gray-500 will-change-transform"
           >
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-gray-300 dark:text-gray-600">下一个：</span>

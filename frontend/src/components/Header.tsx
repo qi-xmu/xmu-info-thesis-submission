@@ -3,6 +3,7 @@ import type { ProgressMap, Phase, SiteInfo, RoleFilter } from '../types'
 import { taskKey, subTaskKey, subFileKey } from '../types'
 import { ProgressBar } from './ProgressBar'
 import { MarkdownText } from './MarkdownText'
+import { Divider } from './ui/Divider'
 
 const HEADER_COLLAPSED_KEY = 'task_tracker_header_collapsed'
 
@@ -85,7 +86,7 @@ export function Header({
 
       {!collapsed && (
         <>
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent mx-6" />
+          <Divider className="mx-6" />
           <div className="px-6 md:px-8 py-4">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-prose leading-relaxed">
               <MarkdownText>{site.description}</MarkdownText>

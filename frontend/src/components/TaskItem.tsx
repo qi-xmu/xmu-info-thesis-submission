@@ -2,7 +2,7 @@ import type { Task, RoleFilter, ProgressMap, RoleOption } from '../types'
 import { subTaskKey, subFileKey, domId } from '../types'
 import { TimeBadge } from './TimeBadge'
 import { MarkdownText } from './MarkdownText'
-import { getRoleLabels, getRoleColors } from '../utils/roles'
+import { RoleBadge } from './ui/RoleBadge'
 
 export function TaskItem({
   task,
@@ -31,8 +31,6 @@ export function TaskItem({
   if (!isRelevant) return null
 
   const featured = variant === 'featured'
-  const ROLE_LABELS = getRoleLabels(roles)
-  const ROLE_COLORS = getRoleColors(roles)
 
   const visibleSubTasks = task.sub_tasks.filter(
     (st) => st.applies_to === 'all' || st.applies_to === role || role === 'all'
@@ -51,7 +49,7 @@ export function TaskItem({
         completed
           ? 'bg-gradient-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
           : featured
-            ? 'bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-700/50 dark:to-gray-700/30 border border-gray-200 dark:border-gray-600 shadow-sm'
+            ? 'bg-gradient-to-r from-blue-50 to-indigo-50/50 dark:from-blue-900/30 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 shadow-sm'
             : 'bg-gray-50/50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700'
       } ${featured ? 'p-5' : 'p-4'}`}
     >
@@ -78,14 +76,8 @@ export function TaskItem({
             >
               {task.title}
             </span>
-            {!featured && task.applies_to !== 'all' && (
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  (ROLE_COLORS[task.applies_to] || ROLE_COLORS.all).bg
-                } ${(ROLE_COLORS[task.applies_to] || ROLE_COLORS.all).text}`}
-              >
-                {ROLE_LABELS[task.applies_to] || task.applies_to}
-              </span>
+            {!featured && (
+              <RoleBadge appliesTo={task.applies_to} roles={roles} />
             )}
             {task.time_nodes
               .filter((tn) => tn.applies_to === 'all' || tn.applies_to === role || role === 'all')
@@ -129,11 +121,7 @@ export function TaskItem({
                       <MarkdownText compact>{st.title}</MarkdownText>
                     </span>
                     {st.applies_to !== 'all' && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                        (ROLE_COLORS[st.applies_to] || ROLE_COLORS.all).bg
-                      } ${(ROLE_COLORS[st.applies_to] || ROLE_COLORS.all).text}`}>
-                        {ROLE_LABELS[st.applies_to]}
-                      </span>
+                      <RoleBadge appliesTo={st.applies_to} roles={roles} size="sm" />
                     )}
                   </label>
                 ))}
@@ -166,11 +154,7 @@ export function TaskItem({
                           {sf.name}
                         </span>
                         {sf.applies_to !== 'all' && (
-                          <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                            (ROLE_COLORS[sf.applies_to] || ROLE_COLORS.all).bg
-                          } ${(ROLE_COLORS[sf.applies_to] || ROLE_COLORS.all).text}`}>
-                            {ROLE_LABELS[sf.applies_to]}
-                          </span>
+                          <RoleBadge appliesTo={sf.applies_to} roles={roles} size="sm" />
                         )}
                       </div>
                       {sf.format && (

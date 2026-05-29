@@ -1,5 +1,6 @@
 import type { Phase, RoleFilter } from '../types'
 import { domId } from '../types'
+import { SectionTitle } from './ui/SectionTitle'
 
 interface TimelineItem {
   taskTitle: string
@@ -72,7 +73,7 @@ export function Timeline({
   if (sorted.length === 0) {
     return (
       <div className="text-sm">
-        <div className="font-bold text-gray-900 dark:text-white mb-4 text-base tracking-tight">时间轴</div>
+        <SectionTitle>时间轴</SectionTitle>
         <div className="text-sm text-gray-400 dark:text-gray-500 py-8 text-center">暂无时间节点</div>
       </div>
     )
@@ -80,7 +81,7 @@ export function Timeline({
 
   return (
     <div className="text-sm">
-      <div className="font-bold text-gray-900 dark:text-white mb-4 text-base tracking-tight">时间轴</div>
+      <SectionTitle>时间轴</SectionTitle>
 
       <div className="relative">
         <div className="absolute left-1.75 top-3 bottom-3 w-px bg-linear-to-b from-gray-300 dark:from-gray-600 via-gray-200 dark:via-gray-700 to-transparent" />
