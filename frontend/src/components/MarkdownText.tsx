@@ -1,8 +1,10 @@
 import Markdown from 'react-markdown'
+import remarkBreaks from 'remark-breaks'
 
 export function MarkdownText({ children }: { children: string }) {
   return (
     <Markdown
+      remarkPlugins={[remarkBreaks]}
       components={{
         p: ({ children }) => <span>{children}</span>,
         strong: ({ children }) => (

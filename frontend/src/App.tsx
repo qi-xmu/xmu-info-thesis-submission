@@ -31,6 +31,7 @@ export default function App() {
     toggleSubTask, 
     toggleSubFile, 
     resetProgress, 
+    resetAll,
     importProgress, 
     importData,
     connectToServer,
@@ -96,6 +97,7 @@ export default function App() {
         onImportProgress={importProgress}
         onImportData={importData}
         onReset={resetProgress}
+        onResetAll={resetAll}
         onConnectServer={connectToServer}
         onDisconnectServer={disconnectServer}
         onUpdateFromServer={updateFromServer}

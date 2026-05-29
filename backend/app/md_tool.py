@@ -38,17 +38,22 @@ def parse_md(text: str) -> dict:
     i = 0
 
     def read_paragraph(start: int, stop_types: set[str]) -> tuple[list[str], int]:
-        """读取连续的非空内容行，跳过空行，直到遇到 stop_types 类型的行或文件末尾"""
+        """读取连续的非空内容行，保留空行作为段落分隔，直到遇到 stop_types 类型的行或文件末尾"""
         parts = []
         j = start
+        prev_empty = False
         while j < len(lines):
             lt = line_type(lines[j])
             if lt in stop_types:
                 break
             if lt == "empty":
+                prev_empty = True
                 j += 1
-                continue  # 跳过空行，继续寻找内容
+                continue
+            if prev_empty and parts:
+                parts.append("")  # 空行 = 段落分隔
             parts.append(lines[j].strip())
+            prev_empty = False
             j += 1
         return parts, j
 
@@ -61,7 +66,7 @@ def parse_md(text: str) -> dict:
 
     # ── 解析 site.description ──
     desc_parts, i = read_paragraph(i, {"role", "phase"})
-    result["site"]["description"] = " ".join(desc_parts)
+    result["site"]["description"] = "\n".join(desc_parts)
 
     # ── 解析 roles ──
     while i < len(lines) and line_type(lines[i]) == "role":
@@ -92,7 +97,7 @@ def parse_md(text: str) -> dict:
 
         # 阶段描述
         desc_parts, i = read_paragraph(i, {"task_header", "phase"})
-        phase["description"] = " ".join(desc_parts)
+        phase["description"] = "\n".join(desc_parts)
         result["phases"].append(phase)
 
         # 解析该阶段下的任务
@@ -177,7 +182,7 @@ def parse_md(text: str) -> dict:
                             desc_parts.append(field)
                         i += 1
                     if desc_parts:
-                        sf["description"] = " ".join(desc_parts)
+                        sf["description"] = "\n".join(desc_parts)
                     task["sub_files"].append(sf)
                     continue
 
@@ -205,7 +210,7 @@ def parse_md(text: str) -> dict:
                     para_parts.append(s2)
                     i += 1
                 if para_parts:
-                    task["notes"].append(" ".join(para_parts))
+                    task["notes"].append("\n".join(para_parts))
 
     return result
 

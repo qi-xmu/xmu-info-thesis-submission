@@ -31,6 +31,7 @@ export function SettingsPanel({
   onImportProgress,
   onImportData,
   onReset,
+  onResetAll,
   onConnectServer,
   onDisconnectServer,
   onUpdateFromServer,
@@ -45,18 +46,20 @@ export function SettingsPanel({
   onImportProgress: (p: ProgressMap) => void
   onImportData: (d: FullData) => void
   onReset: () => void
+  onResetAll: () => void
   onConnectServer: (url: string) => Promise<boolean>
   onDisconnectServer: () => void
   onUpdateFromServer: () => Promise<{ success: boolean; changes?: TaskChanges }>
 }) {
   const [confirming, setConfirming] = useState(false)
+  const [confirmingAll, setConfirmingAll] = useState(false)
   const [importState, setImportState] = useState<'idle' | 'choose' | 'confirm'>('idle')
   const [pendingImport, setPendingImport] = useState<{ progress: ProgressMap; phases: Phase[] } | null>(null)
   const [importChoice, setImportChoice] = useState<'both' | 'progress' | 'tasks'>('both')
   const fileRef = useRef<HTMLInputElement>(null)
 
   // Server connection state
-  const [serverUrl, setServerUrl] = useState(() => getServerUrl() || '')
+  const [serverUrl, setServerUrl] = useState(() => getServerUrl() || 'http://localhost:8000')
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [connectionMessage, setConnectionMessage] = useState('')
   const [isConnected, setIsConnected] = useState(() => !!getServerUrl())
@@ -134,6 +137,17 @@ export function SettingsPanel({
     onClose()
   }
 
+  const handleResetAll = () => {
+    if (!confirmingAll) {
+      setConfirmingAll(true)
+      return
+    }
+    exportData(progress, phases)
+    onResetAll()
+    setConfirmingAll(false)
+    onClose()
+  }
+
   const handleTestConnection = async () => {
     if (!serverUrl.trim()) return
 
@@ -189,6 +203,7 @@ export function SettingsPanel({
     setPendingImport(null)
     setUpdateState('idle')
     setPendingChanges(null)
+    setConfirmingAll(false)
   }
 
   return (
@@ -437,6 +452,44 @@ export function SettingsPanel({
                 </div>
               </button>
             )}
+
+            <div className="mt-3">
+              {confirmingAll ? (
+                <div className="p-3 rounded-lg border border-red-400 bg-red-50 space-y-2">
+                  <div className="text-sm text-red-700 font-medium">
+                    确认清空所有数据？将自动导出后回到初始状态。
+                  </div>
+                  <div className="text-xs text-red-600">
+                    所有进度、缓存数据、服务器连接都将被清除。
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleResetAll}
+                      className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded transition-colors"
+                    >
+                      确认清空
+                    </button>
+                    <button
+                      onClick={() => setConfirmingAll(false)}
+                      className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 rounded transition-colors"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={handleResetAll}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-red-300 hover:border-red-400 text-left transition-colors"
+                >
+                  <span className="text-red-500">⚠</span>
+                  <div>
+                    <div className="text-sm font-medium text-red-700">彻底重置</div>
+                    <div className="text-xs text-gray-500">清空全部数据，回到初始导入状态</div>
+                  </div>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -193,6 +193,17 @@ export function useStore() {
     saveProgress({})
   }, [])
 
+  const resetAll = useCallback(() => {
+    localStorage.removeItem(PROGRESS_KEY)
+    localStorage.removeItem('task_tracker_data')
+    localStorage.removeItem('task_tracker_updated_at')
+    localStorage.removeItem('task_tracker_server_url')
+    localStorage.removeItem('task_tracker_role')
+    localStorage.removeItem('task_tracker_phase')
+    setData(null)
+    setProgress({})
+  }, [])
+
   const importProgress = useCallback((newProgress: ProgressMap) => {
     setProgress(newProgress)
     saveProgress(newProgress)
@@ -211,6 +222,7 @@ export function useStore() {
     toggleSubTask, 
     toggleSubFile, 
     resetProgress, 
+    resetAll,
     importProgress, 
     importData,
     connectToServer,

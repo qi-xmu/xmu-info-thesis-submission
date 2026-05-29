@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import type { FullData } from '../types'
-import { testConnection } from '../api/client'
+import { testConnection, getServerUrl } from '../api/client'
 
 interface DataImportScreenProps {
   onImportData: (data: FullData) => void
@@ -8,7 +8,7 @@ interface DataImportScreenProps {
 }
 
 export function DataImportScreen({ onImportData, onConnectServer }: DataImportScreenProps) {
-  const [serverUrl, setServerUrl] = useState('')
+  const [serverUrl, setServerUrl] = useState(() => getServerUrl() || 'http://localhost:8000')
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [connectionMessage, setConnectionMessage] = useState('')
   const [importing, setImporting] = useState(false)

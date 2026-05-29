@@ -35,14 +35,17 @@ export async function fetchFromServer(url: string): Promise<FullData> {
 
 export async function loadData(): Promise<FullData> {
   const serverUrl = getServerUrl()
-  if (serverUrl) {
+  const urlsToTry = serverUrl ? [serverUrl] : ['http://localhost:8000']
+
+  for (const url of urlsToTry) {
     try {
-      const data = await fetchFromServer(serverUrl)
+      const data = await fetchFromServer(url)
       localStorage.setItem(DATA_KEY, JSON.stringify(data))
       localStorage.setItem(UPDATED_KEY, data.updated_at)
+      if (!serverUrl) setServerUrl(url)
       return data
     } catch {
-      // Server failed, try cache
+      // Try next URL
     }
   }
 
