@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { ProgressMap, Phase, SiteInfo } from '../types'
+import type { ProgressMap, Phase, SiteInfo, RoleFilter } from '../types'
 import { taskKey, subTaskKey, subFileKey } from '../types'
 import { ProgressBar } from './ProgressBar'
 import { MarkdownText } from './MarkdownText'
@@ -10,10 +10,12 @@ export function Header({
   site,
   progress,
   phases,
+  role,
 }: {
   site: SiteInfo
   progress: ProgressMap
   phases: Phase[]
+  role: RoleFilter
 }) {
   const [collapsed, setCollapsed] = useState(() => {
     const saved = localStorage.getItem(HEADER_COLLAPSED_KEY)
@@ -24,12 +26,15 @@ export function Header({
     localStorage.setItem(HEADER_COLLAPSED_KEY, String(collapsed))
   }, [collapsed])
 
-  // 统计所有任务（主任务 + 子任务 + 子文件）
+  // 统计所有任务（主任务 + 子任务 + 子文件），考虑 role 过滤
   let totalCount = 0
   let completedCount = 0
 
   for (const phase of phases) {
     for (const task of phase.tasks) {
+      // 考虑 role 过滤
+      if (role !== 'all' && task.applies_to !== 'all' && task.applies_to !== role) continue
+
       // 主任务
       totalCount++
       if (progress[taskKey(task.title)]) completedCount++
@@ -51,7 +56,7 @@ export function Header({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md mb-6 overflow-hidden">
       <div
-        className="px-6 md:px-8 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+        className="px-6 md:px-8 py-4 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors"
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex items-center justify-between">

@@ -204,6 +204,7 @@ export default function App() {
               site={data.site}
               progress={progress}
               phases={data.phases}
+              role={effectiveRole}
             />
 
             <CurrentTask
@@ -211,6 +212,8 @@ export default function App() {
               progress={progress}
               role={effectiveRole}
               roles={roles}
+              selectedPhaseId={selectedPhaseId}
+              onPhaseChange={handleSelectPhase}
               onToggle={toggleTask}
               onToggleSubTask={toggleSubTask}
               onToggleSubFile={toggleSubFile}

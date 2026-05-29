@@ -1,10 +1,8 @@
-import { useState, useRef, useLayoutEffect, useEffect } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import type { Phase, ProgressMap, RoleFilter, RoleOption } from '../types'
 import { taskKey } from '../types'
 import { TaskItem } from './TaskItem'
 import { TimeBadge } from './TimeBadge'
-
-const COLLAPSED_KEY = 'task_tracker_collapsed_task'
 
 interface CollapsedTask {
   title: string
@@ -17,6 +15,8 @@ export function CurrentTask({
   progress,
   role,
   roles,
+  selectedPhaseId,
+  onPhaseChange,
   onToggle,
   onToggleSubTask,
   onToggleSubFile,
@@ -25,142 +25,129 @@ export function CurrentTask({
   progress: ProgressMap
   role: RoleFilter
   roles: RoleOption[]
+  selectedPhaseId: number | null
+  onPhaseChange: (phaseIdx: number | null) => void
   onToggle: (taskTitle: string) => void
   onToggleSubTask: (taskTitle: string, subTitle: string) => void
   onToggleSubFile: (taskTitle: string, fileName: string) => void
 }) {
-  const [collapsedCompleted, setCollapsedCompleted] = useState<CollapsedTask | null>(() => {
-    const saved = localStorage.getItem(COLLAPSED_KEY)
-    if (saved) {
-      const parsed: CollapsedTask = JSON.parse(saved)
-      if (progress[taskKey(parsed.title)]) {
-        return parsed
+  // 根据 selectedPhaseId 过滤任务
+  const getDisplayTasks = () => {
+    const allTasks: ((typeof phases)[0]['tasks'][0] & { phaseTitle: string; phaseIdx: number })[] = []
+
+    for (const phase of phases) {
+      const phaseIdx = phases.indexOf(phase)
+
+      // 如果选中了特定阶段，只显示该阶段的任务
+      if (selectedPhaseId !== null && phaseIdx !== selectedPhaseId) continue
+
+      for (const task of phase.tasks) {
+        if (role !== 'all' && task.applies_to !== 'all' && task.applies_to !== role) continue
+        allTasks.push({ ...task, phaseTitle: phase.title, phaseIdx })
       }
-      localStorage.removeItem(COLLAPSED_KEY)
+    }
+
+    return allTasks
+  }
+
+  const displayTasks = getDisplayTasks()
+
+  // 找到第一个未完成任务作为当前任务
+  const current = displayTasks.find((t) => !progress[taskKey(t.title)]) ?? null
+
+  // 找到最后完成的任务（用于显示折叠状态）
+  const getLastCompletedTask = () => {
+    for (let i = displayTasks.length - 1; i >= 0; i--) {
+      if (progress[taskKey(displayTasks[i].title)]) {
+        return displayTasks[i]
+      }
     }
     return null
-  })
+  }
 
-  useEffect(() => {
-    if (collapsedCompleted) {
-      localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsedCompleted))
-    } else {
-      localStorage.removeItem(COLLAPSED_KEY)
+  const lastCompleted = getLastCompletedTask()
+
+  // 找到当前任务的上一个已完成任务作为折叠任务
+  let collapsed: CollapsedTask | null = null
+  if (current) {
+    const currentIdx = displayTasks.findIndex((t) => t.title === current.title)
+    for (let i = currentIdx - 1; i >= 0; i--) {
+      if (progress[taskKey(displayTasks[i].title)]) {
+        collapsed = {
+          title: displayTasks[i].title,
+          phaseTitle: displayTasks[i].phaseTitle,
+          deadline: displayTasks[i].time_nodes[0]?.deadline ?? null,
+        }
+        break
+      }
     }
-  }, [collapsedCompleted])
+  }
 
-  // FLIP 动画：记录所有可能的位置
+  // 找到下一个未完成任务
+  const next = current
+    ? displayTasks.find(
+        (t, idx) =>
+          idx > displayTasks.findIndex((tt) => tt.title === current.title) &&
+          !progress[taskKey(t.title)]
+      ) ?? null
+    : null
+
+  // 计算下一阶段索引
+  const getNextPhaseIdx = () => {
+    if (selectedPhaseId === null) return null
+    const nextIdx = selectedPhaseId + 1
+    return nextIdx < phases.length ? nextIdx : null
+  }
+
+  const nextPhaseIdx = getNextPhaseIdx()
+
+  // FLIP 动画
   const savedPositions = useRef<Map<string, number>>(new Map())
 
   const recordAllPositions = () => {
     const container = document.getElementById('task-wheel-container')
     if (!container) return
 
-    // 记录 current 和 collapsed 的位置
     const currentEl = container.querySelector('[data-type="current"]')
     const collapsedEl = container.querySelector('[data-type="collapsed"]')
     const nextEl = container.querySelector('[data-type="next"]')
 
-    if (currentEl) {
-      savedPositions.current.set('current', currentEl.getBoundingClientRect().top)
-    }
-    if (collapsedEl) {
-      savedPositions.current.set('collapsed', collapsedEl.getBoundingClientRect().top)
-    }
-    if (nextEl) {
-      savedPositions.current.set('next', nextEl.getBoundingClientRect().top)
-    }
+    if (currentEl) savedPositions.current.set('current', currentEl.getBoundingClientRect().top)
+    if (collapsedEl) savedPositions.current.set('collapsed', collapsedEl.getBoundingClientRect().top)
+    if (nextEl) savedPositions.current.set('next', nextEl.getBoundingClientRect().top)
   }
 
   const animateElements = () => {
     const container = document.getElementById('task-wheel-container')
     if (!container) return
 
-    const currentEl = container.querySelector('[data-type="current"]') as HTMLElement
-    const collapsedEl = container.querySelector('[data-type="collapsed"]') as HTMLElement
-    const nextEl = container.querySelector('[data-type="next"]') as HTMLElement
-
-    // 动画 current
-    if (currentEl) {
-      const oldTop = savedPositions.current.get('current')
-      const newTop = currentEl.getBoundingClientRect().top
+    const animate = (type: string) => {
+      const el = container.querySelector(`[data-type="${type}"]`) as HTMLElement
+      if (!el) return
+      const oldTop = savedPositions.current.get(type)
+      const newTop = el.getBoundingClientRect().top
       if (oldTop !== undefined && Math.abs(oldTop - newTop) > 1) {
-        const delta = oldTop - newTop
-        currentEl.style.transform = `translateY(${delta}px)`
-        currentEl.style.transition = 'none'
+        el.style.transform = `translateY(${oldTop - newTop}px)`
+        el.style.transition = 'none'
         requestAnimationFrame(() => {
-          currentEl.style.transition = 'transform 0.3s ease-out'
-          currentEl.style.transform = 'translateY(0)'
+          el.style.transition = 'transform 0.3s ease-out'
+          el.style.transform = 'translateY(0)'
         })
       }
     }
 
-    // 动画 collapsed
-    if (collapsedEl) {
-      const oldTop = savedPositions.current.get('collapsed')
-      const newTop = collapsedEl.getBoundingClientRect().top
-      if (oldTop !== undefined && Math.abs(oldTop - newTop) > 1) {
-        const delta = oldTop - newTop
-        collapsedEl.style.transform = `translateY(${delta}px)`
-        collapsedEl.style.transition = 'none'
-        requestAnimationFrame(() => {
-          collapsedEl.style.transition = 'transform 0.3s ease-out'
-          collapsedEl.style.transform = 'translateY(0)'
-        })
-      }
-    }
-
-    // 动画 next
-    if (nextEl) {
-      const oldTop = savedPositions.current.get('next')
-      const newTop = nextEl.getBoundingClientRect().top
-      if (oldTop !== undefined && Math.abs(oldTop - newTop) > 1) {
-        const delta = oldTop - newTop
-        nextEl.style.transform = `translateY(${delta}px)`
-        nextEl.style.transition = 'none'
-        requestAnimationFrame(() => {
-          nextEl.style.transition = 'transform 0.3s ease-out'
-          nextEl.style.transform = 'translateY(0)'
-        })
-      }
-    }
+    animate('current')
+    animate('collapsed')
+    animate('next')
   }
-
-  const incomplete: ((typeof phases)[0]['tasks'][0] & { phaseTitle: string })[] = []
-  for (const phase of phases) {
-    for (const task of phase.tasks) {
-      if (progress[taskKey(task.title)]) continue
-      if (role !== 'all' && task.applies_to !== 'all' && task.applies_to !== role) continue
-      incomplete.push({ ...task, phaseTitle: phase.title })
-      if (incomplete.length >= 3) break
-    }
-    if (incomplete.length >= 3) break
-  }
-
-  const current = incomplete[0] ?? null
-  const next = incomplete[1] ?? null
 
   const handleToggle = (title: string) => {
-    // 1. 记录当前位置（在状态更新前）
     recordAllPositions()
-
-    // 2. 更新状态
-    if (current && title === current.title) {
-      const deadline = current.time_nodes[0]?.deadline ?? null
-      setCollapsedCompleted({
-        title: current.title,
-        phaseTitle: current.phaseTitle,
-        deadline,
-      })
-    } else if (collapsedCompleted && title === collapsedCompleted.title) {
-      setCollapsedCompleted(null)
-    }
     onToggle(title)
   }
 
   const handleUndoComplete = (title: string) => {
     recordAllPositions()
-    setCollapsedCompleted(null)
     onToggle(title)
   }
 
@@ -172,12 +159,18 @@ export function CurrentTask({
     onToggleSubFile(taskTitle, fileName)
   }
 
-  // 3. 在 DOM 更新后应用动画
+  const handleNextPhase = () => {
+    if (nextPhaseIdx !== null) {
+      onPhaseChange(nextPhaseIdx)
+    }
+  }
+
   useLayoutEffect(() => {
     animateElements()
-  }, [current?.title, collapsedCompleted?.title])
+  }, [current?.title, collapsed?.title])
 
-  if (!collapsedCompleted && !current) {
+  // 情况1：没有选中阶段且所有任务都完成了
+  if (selectedPhaseId === null && !current) {
     return (
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
@@ -196,6 +189,69 @@ export function CurrentTask({
     )
   }
 
+  // 情况2：选中阶段，该阶段全部完成
+  if (selectedPhaseId !== null && !current && lastCompleted) {
+    return (
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400 animate-pulse" />
+          <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">任务转轮</h2>
+        </div>
+
+        <div id="task-wheel-container" className="space-y-3">
+          {/* 最后完成的任务（折叠状态） */}
+          <div
+            data-type="collapsed"
+            className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl"
+          >
+            <input
+              type="checkbox"
+              checked
+              onClick={() => handleUndoComplete(lastCompleted.title)}
+              className="w-4 h-4 cursor-pointer"
+            />
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate">
+                {lastCompleted.title}
+              </span>
+              <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full flex-shrink-0">
+                {lastCompleted.phaseTitle}
+              </span>
+            </div>
+            {lastCompleted.time_nodes[0]?.deadline && (
+              <TimeBadge node={{ name: '', deadline: lastCompleted.time_nodes[0].deadline, remark: null, applies_to: 'all' }} />
+            )}
+          </div>
+
+          {/* 阶段完成提示 */}
+          <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5 text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <svg className="w-5 h-5 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                {phases[selectedPhaseId]?.title} 阶段任务已完成！
+              </span>
+            </div>
+
+            {nextPhaseIdx !== null && (
+              <button
+                onClick={handleNextPhase}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors"
+              >
+                进行下一阶段
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 情况3：有未完成的任务
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3">
@@ -204,7 +260,8 @@ export function CurrentTask({
       </div>
 
       <div id="task-wheel-container" className="space-y-3">
-        {collapsedCompleted && (
+        {/* 折叠的已完成任务 */}
+        {collapsed && (
           <div
             data-type="collapsed"
             className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl"
@@ -213,42 +270,42 @@ export function CurrentTask({
             <input
               type="checkbox"
               checked
-              onClick={() => handleUndoComplete(collapsedCompleted.title)}
+              onClick={() => handleUndoComplete(collapsed.title)}
               className="w-4 h-4 cursor-pointer"
             />
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate">
-                {collapsedCompleted.title}
+                {collapsed.title}
               </span>
               <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full flex-shrink-0">
-                {collapsedCompleted.phaseTitle}
+                {collapsed.phaseTitle}
               </span>
             </div>
-            {collapsedCompleted.deadline && (
-              <TimeBadge node={{ name: '', deadline: collapsedCompleted.deadline, remark: null, applies_to: 'all' }} />
+            {collapsed.deadline && (
+              <TimeBadge node={{ name: '', deadline: collapsed.deadline, remark: null, applies_to: 'all' }} />
             )}
           </div>
         )}
 
-        {current && (
-          <div
-            data-type="current"
-            style={{ willChange: 'transform' }}
-          >
-            <TaskItem
-              task={current}
-              completed={!!progress[taskKey(current.title)]}
-              progress={progress}
-              onToggle={() => handleToggle(current.title)}
-              onToggleSubTask={(subTitle) => handleToggleSubTask(current.title, subTitle)}
-              onToggleSubFile={(fileName) => handleToggleSubFile(current.title, fileName)}
-              role={role}
-              roles={roles}
-              variant="featured"
-            />
-          </div>
-        )}
+        {/* 当前任务 */}
+        <div
+          data-type="current"
+          style={{ willChange: 'transform' }}
+        >
+          <TaskItem
+            task={current}
+            completed={!!progress[taskKey(current.title)]}
+            progress={progress}
+            onToggle={() => handleToggle(current.title)}
+            onToggleSubTask={(subTitle) => handleToggleSubTask(current.title, subTitle)}
+            onToggleSubFile={(fileName) => handleToggleSubFile(current.title, fileName)}
+            role={role}
+            roles={roles}
+            variant="featured"
+          />
+        </div>
 
+        {/* 下一个任务预览 */}
         {next && (
           <div
             data-type="next"
