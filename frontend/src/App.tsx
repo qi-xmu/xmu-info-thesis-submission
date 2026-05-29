@@ -10,7 +10,8 @@ import { CurrentTask } from './components/CurrentTask'
 import { DataImportScreen } from './components/DataImportScreen'
 import { Fireworks } from './components/Fireworks'
 import { FloatingActionButton } from './components/ui/FloatingActionButton'
-import type { RoleFilter } from './types'
+import { EditPage } from './components/EditPage'
+import type { RoleFilter, FullData } from './types'
 
 declare const __BUILD_TIME__: string
 
@@ -55,6 +56,7 @@ export default function App() {
     if (saved !== null) return saved === 'true'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
+  const [markerMode, setMarkerMode] = useState(false)
   const [showFireworks, setShowFireworks] = useState(false)
   const [fireworksKey, setFireworksKey] = useState(0)
   const progressRef = useRef(progress)
@@ -127,6 +129,11 @@ export default function App() {
     setTimelineOpen(false)
   }
 
+  const handleMarkerSave = (newData: FullData) => {
+    importData(newData)
+    setMarkerMode(false)
+  }
+
   if (!data) {
     return (
       <DataImportScreen
@@ -142,6 +149,17 @@ export default function App() {
   const selectedPhase = selectedPhaseId !== null
     ? data.phases[selectedPhaseId] ?? null
     : null
+
+  // 如果是标记模式，显示编辑页面
+  if (markerMode) {
+    return (
+      <EditPage
+        data={data}
+        onBack={() => setMarkerMode(false)}
+        onSave={handleMarkerSave}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -182,6 +200,16 @@ export default function App() {
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </FloatingActionButton>
+
+      {/* 悬浮标记模式按钮 - 深色模式按钮上方 */}
+      <FloatingActionButton
+        onClick={() => setMarkerMode(!markerMode)}
+        className={`fixed bottom-30 right-5 xl:right-72 z-30 p-3 ${markerMode ? 'bg-blue-500 text-white' : 'bg-white dark:bg-gray-800'}`}
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       </FloatingActionButton>
 
