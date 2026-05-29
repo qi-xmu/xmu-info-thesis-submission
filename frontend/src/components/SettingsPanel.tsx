@@ -87,14 +87,9 @@ export function SettingsPanel({
         }
         // v1 format (legacy): has completed_tasks only
         else if (json.completed_tasks && Array.isArray(json.completed_tasks)) {
-          const titleToId = new Map<string, number>()
-          phases.forEach((p) =>
-            p.tasks.forEach((t) => titleToId.set(t.title, t.id))
-          )
           const imported: ProgressMap = {}
           json.completed_tasks.forEach((item: { title: string }) => {
-            const id = titleToId.get(item.title)
-            if (id !== undefined) imported[id] = true
+            imported[item.title] = true
           })
           setPendingImport({ progress: imported, phases })
           setImportState('choose')
@@ -182,16 +177,21 @@ export function SettingsPanel({
 
   const handleUpdateFromServer = async () => {
     setUpdateState('testing')
-    const result = await onUpdateFromServer()
-    if (result.success) {
-      if (result.changes && (result.changes.added.length > 0 || result.changes.removed.length > 0 || result.changes.modified.length > 0)) {
-        setPendingChanges(result.changes)
-        setUpdateState('confirm')
+    try {
+      const result = await onUpdateFromServer()
+      if (result.success) {
+        if (result.changes && (result.changes.added.length > 0 || result.changes.removed.length > 0 || result.changes.modified.length > 0)) {
+          setPendingChanges(result.changes)
+          setUpdateState('confirm')
+        } else {
+          setUpdateMessage('没有检测到任务变化')
+          setUpdateState('success')
+        }
       } else {
-        setUpdateMessage('没有检测到任务变化')
-        setUpdateState('success')
+        setUpdateMessage('更新失败，请检查连接')
+        setUpdateState('error')
       }
-    } else {
+    } catch {
       setUpdateMessage('更新失败，请检查连接')
       setUpdateState('error')
     }
@@ -208,8 +208,8 @@ export function SettingsPanel({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={handleClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 flex-shrink-0">
           <h2 className="text-lg font-bold text-gray-800">设置</h2>
           <button
             onClick={handleClose}
@@ -221,7 +221,7 @@ export function SettingsPanel({
           </button>
         </div>
 
-        <div className="p-5 space-y-6">
+        <div className="p-5 space-y-6 overflow-y-auto">
           {/* 身份设置 */}
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-3">身份设置</h3>

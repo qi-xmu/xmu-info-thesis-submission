@@ -35,23 +35,22 @@ export async function fetchFromServer(url: string): Promise<FullData> {
 
 export async function loadData(): Promise<FullData> {
   const serverUrl = getServerUrl()
-  const urlsToTry = serverUrl ? [serverUrl] : ['http://localhost:8000']
-
-  for (const url of urlsToTry) {
-    try {
-      const data = await fetchFromServer(url)
-      localStorage.setItem(DATA_KEY, JSON.stringify(data))
-      localStorage.setItem(UPDATED_KEY, data.updated_at)
-      if (!serverUrl) setServerUrl(url)
-      return data
-    } catch {
-      // Try next URL
-    }
+  if (!serverUrl) {
+    const cached = localStorage.getItem(DATA_KEY)
+    if (cached) return JSON.parse(cached)
+    throw new Error('No data available')
   }
 
-  const cached = localStorage.getItem(DATA_KEY)
-  if (cached) return JSON.parse(cached)
-  throw new Error('No data available')
+  try {
+    const data = await fetchFromServer(serverUrl)
+    localStorage.setItem(DATA_KEY, JSON.stringify(data))
+    localStorage.setItem(UPDATED_KEY, data.updated_at)
+    return data
+  } catch {
+    const cached = localStorage.getItem(DATA_KEY)
+    if (cached) return JSON.parse(cached)
+    throw new Error('No data available')
+  }
 }
 
 export async function needsRefresh(): Promise<boolean> {

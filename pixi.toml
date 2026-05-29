@@ -12,19 +12,15 @@ nodejs = ">=20"
 [pypi-dependencies]
 fastapi = ">=0.115"
 uvicorn = ">=0.30"
-sqlalchemy = ">=2.0"
 pydantic = ">=2.0"
 fastapi-cli = ">=0.0.5"
 
 [tasks]
-seed = { cmd = "python -m app.seed", cwd = "backend" }
-backend = { cmd = "fastapi dev --host 127.0.0.1 --port 8000 app/main.py", cwd = "backend", depends-on = ["seed"] }
+backend = { cmd = "fastapi dev --host 127.0.0.1 --port 8000 app/main.py", cwd = "backend" }
 frontend-install = { cmd = "npm install", cwd = "frontend" }
 frontend-dev = { cmd = "npm run dev", cwd = "frontend", depends-on = ["frontend-install"] }
 frontend-build = { cmd = "npm run build", cwd = "frontend", depends-on = ["frontend-install"] }
-dev = { cmd = "pixi run backend & pixi run frontend-dev", depends-on = ["seed", "frontend-install"] }
-build = { cmd = "pixi run frontend-build", depends-on = ["seed"] }
-db-export = { cmd = "python -m app.db_tool export", cwd = "backend" }
-db-import = { cmd = "python -m app.db_tool import", cwd = "backend" }
+dev = { cmd = "pixi run backend & pixi run frontend-dev", depends-on = ["frontend-install"] }
+build = { cmd = "pixi run frontend-build" }
 md2json = { cmd = "python -m app.md_tool to-json", cwd = "backend" }
 json2md = { cmd = "python -m app.md_tool to-md", cwd = "backend" }

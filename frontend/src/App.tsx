@@ -26,7 +26,6 @@ export default function App() {
   const { 
     data, 
     progress, 
-    loading, 
     toggleTask, 
     toggleSubTask, 
     toggleSubFile, 
@@ -58,14 +57,6 @@ export default function App() {
     setSidebarOpen(false)
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-500">加载中...</div>
-      </div>
-    )
-  }
-
   if (!data) {
     return (
       <DataImportScreen
@@ -78,8 +69,8 @@ export default function App() {
   const effectiveRole: RoleFilter = role ?? 'all'
   const roles = data.site.roles
 
-  const selectedPhase = selectedPhaseId
-    ? data.phases.find((p) => p.id === selectedPhaseId) ?? null
+  const selectedPhase = selectedPhaseId !== null
+    ? data.phases[selectedPhaseId] ?? null
     : null
 
   return (
@@ -197,7 +188,7 @@ export default function App() {
             <div className="space-y-4">
               {selectedPhase ? (
                 <PhaseCard
-                  key={selectedPhase.id}
+                  key={selectedPhase.title}
                   phase={selectedPhase}
                   progress={progress}
                   onToggle={toggleTask}
@@ -210,7 +201,7 @@ export default function App() {
               ) : (
                 data.phases.map((phase) => (
                   <PhaseCard
-                    key={phase.id}
+                    key={phase.title}
                     phase={phase}
                     progress={progress}
                     onToggle={toggleTask}

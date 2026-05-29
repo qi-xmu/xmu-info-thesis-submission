@@ -1,4 +1,5 @@
 import type { ProgressMap, Phase, SiteInfo } from '../types'
+import { taskKey } from '../types'
 import { ProgressBar } from './ProgressBar'
 import { MarkdownText } from './MarkdownText'
 
@@ -12,7 +13,7 @@ export function Header({
   phases: Phase[]
 }) {
   const allTasks = phases.flatMap((p) => p.tasks)
-  const completedCount = allTasks.filter((t) => progress[t.id]).length
+  const completedCount = allTasks.filter((t) => progress[taskKey(t.title)]).length
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">

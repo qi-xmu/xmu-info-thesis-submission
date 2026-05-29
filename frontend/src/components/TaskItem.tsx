@@ -1,4 +1,5 @@
 import type { Task, RoleFilter, ProgressMap, RoleOption } from '../types'
+import { taskKey, subTaskKey, subFileKey, domId } from '../types'
 import { TimeBadge } from './TimeBadge'
 import { MarkdownText } from './MarkdownText'
 import { getRoleLabels, getRoleColors } from '../utils/roles'
@@ -18,8 +19,8 @@ export function TaskItem({
   completed: boolean
   progress: ProgressMap
   onToggle: () => void
-  onToggleSubTask: (id: number) => void
-  onToggleSubFile: (id: number) => void
+  onToggleSubTask: (subTitle: string) => void
+  onToggleSubFile: (fileName: string) => void
   role: RoleFilter
   roles: RoleOption[]
   variant?: 'compact' | 'featured'
@@ -40,9 +41,12 @@ export function TaskItem({
     (sf) => sf.applies_to === 'all' || sf.applies_to === role || role === 'all'
   )
 
+  const stKey = (subTitle: string) => subTaskKey(task.title, subTitle)
+  const sfKey = (fileName: string) => subFileKey(task.title, fileName)
+
   return (
     <div
-      id={`task-${task.id}`}
+      id={domId(task.title)}
       className={`border rounded-lg transition-all scroll-mt-24 ${
         completed
           ? 'bg-green-50 border-green-200'
@@ -86,8 +90,8 @@ export function TaskItem({
               )}
               {task.time_nodes
                 .filter((tn) => tn.applies_to === 'all' || tn.applies_to === role || role === 'all')
-                .map((node) => (
-                <TimeBadge key={node.id} node={node} />
+                .map((node, i) => (
+                <TimeBadge key={`${node.name}-${i}`} node={node} />
               ))}
             </div>
           </div>
@@ -97,7 +101,7 @@ export function TaskItem({
             <div className={`text-sm text-gray-700 leading-relaxed ${featured ? 'mb-3' : 'mt-2'}`}>
               {task.notes.map((note, i) => (
                 <span key={i}>
-                  <MarkdownText>{note}</MarkdownText>
+                  <MarkdownText compact>{note}</MarkdownText>
                   {i < task.notes.length - 1 && ' '}
                 </span>
               ))}
@@ -111,19 +115,19 @@ export function TaskItem({
               <div className="space-y-1">
                 {visibleSubTasks.map((st) => (
                   <label
-                    key={st.id}
+                    key={st.title}
                     className="flex items-center gap-2 text-sm cursor-pointer group"
                   >
                     <input
                       type="checkbox"
-                      checked={!!progress[`st_${st.id}`]}
-                      onChange={() => onToggleSubTask(st.id)}
+                      checked={!!progress[stKey(st.title)]}
+                      onChange={() => onToggleSubTask(st.title)}
                       className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
                     <span className={`${
-                      progress[`st_${st.id}`] ? 'line-through text-gray-400' : 'text-gray-600'
+                      progress[stKey(st.title)] ? 'line-through text-gray-400' : 'text-gray-600'
                     }`}>
-                      <MarkdownText>{st.title}</MarkdownText>
+                      <MarkdownText compact>{st.title}</MarkdownText>
                     </span>
                     {st.applies_to !== 'all' && (
                       <span className={`text-xs px-1 py-0.5 rounded ${
@@ -145,20 +149,20 @@ export function TaskItem({
               <div className="space-y-2">
                 {visibleSubFiles.map((sf) => (
                   <div
-                    key={sf.id}
+                    key={sf.name}
                     className="border-l-2 border-blue-200 pl-3"
                   >
                     <label className="flex items-start gap-2 text-sm cursor-pointer group">
                       <input
                         type="checkbox"
-                        checked={!!progress[`sf_${sf.id}`]}
-                        onChange={() => onToggleSubFile(sf.id)}
+                        checked={!!progress[sfKey(sf.name)]}
+                        onChange={() => onToggleSubFile(sf.name)}
                         className="mt-0.5 h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className={`font-medium ${
-                            progress[`sf_${sf.id}`] ? 'line-through text-gray-400' : 'text-gray-800'
+                            progress[sfKey(sf.name)] ? 'line-through text-gray-400' : 'text-gray-800'
                           }`}>
                             {sf.name}
                           </span>

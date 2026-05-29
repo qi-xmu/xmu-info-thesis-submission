@@ -1,4 +1,5 @@
 import type { Phase, ProgressMap, RoleFilter, RoleOption } from '../types'
+import { taskKey } from '../types'
 import { TaskItem } from './TaskItem'
 import { TimeBadge } from './TimeBadge'
 
@@ -15,14 +16,14 @@ export function CurrentTask({
   progress: ProgressMap
   role: RoleFilter
   roles: RoleOption[]
-  onToggle: (taskId: number) => void
-  onToggleSubTask: (id: number) => void
-  onToggleSubFile: (id: number) => void
+  onToggle: (taskTitle: string) => void
+  onToggleSubTask: (taskTitle: string, subTitle: string) => void
+  onToggleSubFile: (taskTitle: string, fileName: string) => void
 }) {
   const incomplete: ((typeof phases)[0]['tasks'][0] & { phaseTitle: string })[] = []
   for (const phase of phases) {
     for (const task of phase.tasks) {
-      if (progress[task.id]) continue
+      if (progress[taskKey(task.title)]) continue
       if (role !== 'all' && task.applies_to !== 'all' && task.applies_to !== role) continue
       incomplete.push({ ...task, phaseTitle: phase.title })
       if (incomplete.length >= 2) break
@@ -51,11 +52,11 @@ export function CurrentTask({
 
       <TaskItem
         task={current}
-        completed={!!progress[current.id]}
+        completed={!!progress[taskKey(current.title)]}
         progress={progress}
-        onToggle={() => onToggle(current.id)}
-        onToggleSubTask={onToggleSubTask}
-        onToggleSubFile={onToggleSubFile}
+        onToggle={() => onToggle(current.title)}
+        onToggleSubTask={(subTitle) => onToggleSubTask(current.title, subTitle)}
+        onToggleSubFile={(fileName) => onToggleSubFile(current.title, fileName)}
         role={role}
         roles={roles}
         variant="featured"

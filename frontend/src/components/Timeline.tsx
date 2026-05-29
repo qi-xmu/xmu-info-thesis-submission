@@ -1,7 +1,7 @@
 import type { Phase, RoleFilter } from '../types'
+import { domId } from '../types'
 
 interface TimelineItem {
-  taskId: number
   taskTitle: string
   phaseIndex: number
   name: string
@@ -30,19 +30,18 @@ export function Timeline({
   role: RoleFilter
   selectedPhaseId: number | null
 }) {
-  const filteredPhases = selectedPhaseId
-    ? phases.filter((p) => p.id === selectedPhaseId)
+  const filteredPhases = selectedPhaseId !== null
+    ? phases.filter((_, idx) => idx === selectedPhaseId)
     : phases
 
   const items: TimelineItem[] = filteredPhases.flatMap((phase) => {
-    const phaseIndex = phases.findIndex((p) => p.id === phase.id)
+    const phaseIndex = phases.indexOf(phase)
     return phase.tasks
       .filter((task) => task.applies_to === 'all' || task.applies_to === role || role === 'all')
       .flatMap((task) =>
         task.time_nodes
           .filter((tn) => tn.applies_to === 'all' || tn.applies_to === role || role === 'all')
           .map((node) => ({
-            taskId: task.id,
             taskTitle: task.title,
             phaseIndex,
             name: node.name ?? '',
@@ -54,8 +53,8 @@ export function Timeline({
 
   const sorted = items
 
-  const handleClick = (taskId: number) => {
-    const el = document.getElementById(`task-${taskId}`)
+  const handleClick = (taskTitle: string) => {
+    const el = document.getElementById(domId(taskTitle))
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
@@ -84,9 +83,9 @@ export function Timeline({
 
           return (
             <div
-              key={`${item.taskId}-${item.name}-${i}`}
+              key={`${item.taskTitle}-${item.name}-${i}`}
               className={`relative pl-6 cursor-pointer group ${i > 0 ? 'mt-3' : ''}`}
-              onClick={() => handleClick(item.taskId)}
+              onClick={() => handleClick(item.taskTitle)}
             >
               <div
                 className={`absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full ${dotColor} bg-white`}

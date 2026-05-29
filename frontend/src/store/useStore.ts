@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import type { FullData, ProgressMap, Phase } from '../types'
-import { loadData, getCachedData, setServerUrl as saveServerUrl, clearServerUrl, fetchFromServer } from '../api/client'
+import { taskKey, subTaskKey, subFileKey } from '../types'
+import { getCachedData, setServerUrl as saveServerUrl, clearServerUrl, fetchFromServer } from '../api/client'
 
 const PROGRESS_KEY = 'task_tracker_progress'
 
@@ -64,16 +65,6 @@ function computeTaskChanges(oldPhases: Phase[], newPhases: Phase[]): TaskChanges
 export function useStore() {
   const [data, setData] = useState<FullData | null>(() => getCachedData())
   const [progress, setProgress] = useState<ProgressMap>(loadProgress)
-  const [loading, setLoading] = useState(!data)
-
-  useEffect(() => {
-    loadData()
-      .then((d) => {
-        setData(d)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [])
 
   const connectToServer = useCallback(async (url: string): Promise<boolean> => {
     try {
@@ -111,21 +102,21 @@ export function useStore() {
     }
   }, [data])
 
-  const toggleTask = useCallback((taskId: number) => {
+  const toggleTask = useCallback((title: string) => {
     setProgress((prev) => {
-      const wasCompleted = !!prev[taskId]
-      const next: ProgressMap = { ...prev, [taskId]: !wasCompleted }
+      const key = taskKey(title)
+      const wasCompleted = !!prev[key]
+      const next: ProgressMap = { ...prev, [key]: !wasCompleted }
 
-      // Auto-complete/uncomplete all sub_tasks and sub_files
       if (data) {
         for (const phase of data.phases) {
           for (const task of phase.tasks) {
-            if (task.id === taskId) {
+            if (task.title === title) {
               for (const st of task.sub_tasks) {
-                next[`st_${st.id}`] = !wasCompleted
+                next[subTaskKey(title, st.title)] = !wasCompleted
               }
               for (const sf of task.sub_files) {
-                next[`sf_${sf.id}`] = !wasCompleted
+                next[subFileKey(title, sf.name)] = !wasCompleted
               }
               break
             }
@@ -138,20 +129,18 @@ export function useStore() {
     })
   }, [data])
 
-  const toggleSubTask = useCallback((subTaskId: number) => {
+  const toggleSubTask = useCallback((taskTitle: string, subTitle: string) => {
     setProgress((prev) => {
-      const key = `st_${subTaskId}`
+      const key = subTaskKey(taskTitle, subTitle)
       const next: ProgressMap = { ...prev, [key]: !prev[key] }
 
-      // Check if parent task should auto-complete
       if (data) {
         for (const phase of data.phases) {
           for (const task of phase.tasks) {
-            const st = task.sub_tasks.find((s) => s.id === subTaskId)
-            if (st) {
-              const allDone = task.sub_tasks.every((s) => next[`st_${s.id}`])
-                && task.sub_files.every((f) => next[`sf_${f.id}`])
-              next[task.id] = allDone
+            if (task.title === taskTitle) {
+              const allDone = task.sub_tasks.every((s) => next[subTaskKey(taskTitle, s.title)])
+                && task.sub_files.every((f) => next[subFileKey(taskTitle, f.name)])
+              next[taskKey(taskTitle)] = allDone
               break
             }
           }
@@ -163,20 +152,18 @@ export function useStore() {
     })
   }, [data])
 
-  const toggleSubFile = useCallback((subFileId: number) => {
+  const toggleSubFile = useCallback((taskTitle: string, fileName: string) => {
     setProgress((prev) => {
-      const key = `sf_${subFileId}`
+      const key = subFileKey(taskTitle, fileName)
       const next: ProgressMap = { ...prev, [key]: !prev[key] }
 
-      // Check if parent task should auto-complete
       if (data) {
         for (const phase of data.phases) {
           for (const task of phase.tasks) {
-            const sf = task.sub_files.find((f) => f.id === subFileId)
-            if (sf) {
-              const allDone = task.sub_tasks.every((s) => next[`st_${s.id}`])
-                && task.sub_files.every((f) => next[`sf_${f.id}`])
-              next[task.id] = allDone
+            if (task.title === taskTitle) {
+              const allDone = task.sub_tasks.every((s) => next[subTaskKey(taskTitle, s.title)])
+                && task.sub_files.every((f) => next[subFileKey(taskTitle, f.name)])
+              next[taskKey(taskTitle)] = allDone
               break
             }
           }
@@ -214,16 +201,15 @@ export function useStore() {
     localStorage.setItem('task_tracker_data', JSON.stringify(newData))
   }, [])
 
-  return { 
-    data, 
-    progress, 
-    loading, 
-    toggleTask, 
-    toggleSubTask, 
-    toggleSubFile, 
-    resetProgress, 
+  return {
+    data,
+    progress,
+    toggleTask,
+    toggleSubTask,
+    toggleSubFile,
+    resetProgress,
     resetAll,
-    importProgress, 
+    importProgress,
     importData,
     connectToServer,
     disconnectServer,

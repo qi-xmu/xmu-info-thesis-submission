@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Phase, ProgressMap, RoleFilter, RoleOption } from '../types'
+import { taskKey } from '../types'
 import { TaskItem } from './TaskItem'
 import { ProgressBar } from './ProgressBar'
 
@@ -15,9 +16,9 @@ export function PhaseCard({
 }: {
   phase: Phase
   progress: ProgressMap
-  onToggle: (taskId: number) => void
-  onToggleSubTask: (id: number) => void
-  onToggleSubFile: (id: number) => void
+  onToggle: (taskTitle: string) => void
+  onToggleSubTask: (taskTitle: string, subTitle: string) => void
+  onToggleSubFile: (taskTitle: string, fileName: string) => void
   role: RoleFilter
   roles: RoleOption[]
   defaultExpanded?: boolean
@@ -27,15 +28,15 @@ export function PhaseCard({
   const relevantTasks = phase.tasks
     .filter((t) => t.applies_to === 'all' || t.applies_to === role || role === 'all')
     .sort((a, b) => {
-      const ac = progress[a.id] ? 1 : 0
-      const bc = progress[b.id] ? 1 : 0
+      const ac = progress[taskKey(a.title)] ? 1 : 0
+      const bc = progress[taskKey(b.title)] ? 1 : 0
       return ac - bc
     })
 
-  const completedCount = relevantTasks.filter((t) => progress[t.id]).length
+  const completedCount = relevantTasks.filter((t) => progress[taskKey(t.title)]).length
 
   return (
-    <div id={`phase-${phase.id}`} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-24">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-24">
       <div
         className="px-5 pt-5 pb-3 cursor-pointer hover:bg-gray-50/50 transition-colors"
         onClick={() => setExpanded(!expanded)}
@@ -68,13 +69,13 @@ export function PhaseCard({
         <div className="p-5 space-y-3">
           {relevantTasks.map((task) => (
             <TaskItem
-              key={task.id}
+              key={task.title}
               task={task}
-              completed={!!progress[task.id]}
+              completed={!!progress[taskKey(task.title)]}
               progress={progress}
-              onToggle={() => onToggle(task.id)}
-              onToggleSubTask={onToggleSubTask}
-              onToggleSubFile={onToggleSubFile}
+              onToggle={() => onToggle(task.title)}
+              onToggleSubTask={(subTitle) => onToggleSubTask(task.title, subTitle)}
+              onToggleSubFile={(fileName) => onToggleSubFile(task.title, fileName)}
               role={role}
               roles={roles}
             />

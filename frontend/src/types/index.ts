@@ -12,7 +12,6 @@ export interface SiteInfo {
 }
 
 export interface TimeNode {
-  id: number
   name: string | null
   deadline: string | null
   remark: string | null
@@ -20,35 +19,35 @@ export interface TimeNode {
 }
 
 export interface SubTask {
-  id: number
   title: string
   applies_to: string
+  sort_order: number
 }
 
 export interface SubFile {
-  id: number
   name: string
   format: string | null
   naming_rule: string | null
   description: string | null
   applies_to: string
+  sort_order: number
 }
 
 export interface Task {
-  id: number
   title: string
   applies_to: string
   notes: string[]
   sub_tasks: SubTask[]
   sub_files: SubFile[]
   time_nodes: TimeNode[]
+  sort_order: number
 }
 
 export interface Phase {
-  id: number
   title: string
   description: string | null
   tasks: Task[]
+  sort_order: number
 }
 
 export interface FullData {
@@ -61,4 +60,20 @@ export type RoleFilter = 'all' | 'doctor' | 'master' | 'professional'
 
 export interface ProgressMap {
   [key: string]: boolean
+}
+
+export function taskKey(taskTitle: string): string {
+  return taskTitle
+}
+
+export function subTaskKey(taskTitle: string, subTitle: string): string {
+  return `st:${taskTitle}:${subTitle}`
+}
+
+export function subFileKey(taskTitle: string, fileName: string): string {
+  return `sf:${taskTitle}:${fileName}`
+}
+
+export function domId(title: string): string {
+  return `t-${title}`
 }
