@@ -176,7 +176,7 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
           </div>
 
           {/* 选项卡片 */}
-          <div className="flex-1 space-y-4 max-w-md mx-auto md:mx-0">
+          <div className="w-full flex-1 space-y-4 max-w-md mx-auto md:mx-0">
             {/* 使用默认数据 */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <CardHeader
