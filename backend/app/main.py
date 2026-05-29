@@ -16,7 +16,7 @@ app.add_middleware(
 
 app.include_router(data_router)
 
-# Serve frontend static files if built
+# Serve frontend static files if built and explicitly enabled
 dist_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend", "dist")
-if os.path.isdir(dist_dir):
+if os.environ.get("SERVE_FRONTEND") == "true" and os.path.isdir(dist_dir):
     app.mount("/", StaticFiles(directory=dist_dir, html=True), name="frontend")

@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react'
 import type { RoleFilter, ProgressMap, Phase, FullData } from '../types'
+import { getServerUrl, testConnection } from '../api/client'
+import type { TaskChanges } from '../store/useStore'
 
 function exportData(progress: ProgressMap, phases: Phase[]) {
   const data = {
@@ -13,7 +15,7 @@ function exportData(progress: ProgressMap, phases: Phase[]) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `论文进度_${new Date().toISOString().slice(0, 10)}.json`
+  a.download = `任务进度_${new Date().toISOString().slice(0, 10)}.json`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -29,6 +31,9 @@ export function SettingsPanel({
   onImportProgress,
   onImportData,
   onReset,
+  onConnectServer,
+  onDisconnectServer,
+  onUpdateFromServer,
 }: {
   open: boolean
   onClose: () => void
@@ -40,12 +45,26 @@ export function SettingsPanel({
   onImportProgress: (p: ProgressMap) => void
   onImportData: (d: FullData) => void
   onReset: () => void
+  onConnectServer: (url: string) => Promise<boolean>
+  onDisconnectServer: () => void
+  onUpdateFromServer: () => Promise<{ success: boolean; changes?: TaskChanges }>
 }) {
   const [confirming, setConfirming] = useState(false)
   const [importState, setImportState] = useState<'idle' | 'choose' | 'confirm'>('idle')
   const [pendingImport, setPendingImport] = useState<{ progress: ProgressMap; phases: Phase[] } | null>(null)
   const [importChoice, setImportChoice] = useState<'both' | 'progress' | 'tasks'>('both')
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // Server connection state
+  const [serverUrl, setServerUrl] = useState(() => getServerUrl() || '')
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
+  const [connectionMessage, setConnectionMessage] = useState('')
+  const [isConnected, setIsConnected] = useState(() => !!getServerUrl())
+
+  // Update from server state
+  const [updateState, setUpdateState] = useState<'idle' | 'testing' | 'confirm' | 'success' | 'error'>('idle')
+  const [pendingChanges, setPendingChanges] = useState<TaskChanges | null>(null)
+  const [updateMessage, setUpdateMessage] = useState('')
 
   if (!open) return null
 
@@ -115,13 +134,70 @@ export function SettingsPanel({
     onClose()
   }
 
+  const handleTestConnection = async () => {
+    if (!serverUrl.trim()) return
+
+    setConnectionStatus('testing')
+    const result = await testConnection(serverUrl.trim())
+    setConnectionStatus(result.ok ? 'success' : 'error')
+    setConnectionMessage(result.message)
+  }
+
+  const handleSaveConnection = async () => {
+    if (!serverUrl.trim()) return
+
+    setConnectionStatus('testing')
+    const success = await onConnectServer(serverUrl.trim())
+    if (success) {
+      setConnectionStatus('success')
+      setConnectionMessage('连接成功')
+      setIsConnected(true)
+    } else {
+      setConnectionStatus('error')
+      setConnectionMessage('连接失败')
+      setIsConnected(false)
+    }
+  }
+
+  const handleDisconnect = () => {
+    onDisconnectServer()
+    setIsConnected(false)
+    setConnectionStatus('idle')
+    setConnectionMessage('')
+  }
+
+  const handleUpdateFromServer = async () => {
+    setUpdateState('testing')
+    const result = await onUpdateFromServer()
+    if (result.success) {
+      if (result.changes && (result.changes.added.length > 0 || result.changes.removed.length > 0 || result.changes.modified.length > 0)) {
+        setPendingChanges(result.changes)
+        setUpdateState('confirm')
+      } else {
+        setUpdateMessage('没有检测到任务变化')
+        setUpdateState('success')
+      }
+    } else {
+      setUpdateMessage('更新失败，请检查连接')
+      setUpdateState('error')
+    }
+  }
+
+  const handleClose = () => {
+    onClose()
+    setImportState('idle')
+    setPendingImport(null)
+    setUpdateState('idle')
+    setPendingChanges(null)
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={handleClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <h2 className="text-lg font-bold text-gray-800">设置</h2>
           <button
-            onClick={() => { onClose(); setImportState('idle'); setPendingImport(null); }}
+            onClick={handleClose}
             className="p-1 text-gray-400 hover:text-gray-600 rounded"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,6 +233,90 @@ export function SettingsPanel({
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* 服务器连接 */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">服务器连接</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">服务器地址</label>
+                <input
+                  type="text"
+                  value={serverUrl}
+                  onChange={(e) => setServerUrl(e.target.value)}
+                  placeholder="http://localhost:8000"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-300'}`} />
+                <span className="text-gray-600">{isConnected ? '已连接' : '未连接'}</span>
+                {isConnected && serverUrl && (
+                  <span className="text-gray-400 truncate">({serverUrl})</span>
+                )}
+              </div>
+
+              {connectionStatus !== 'idle' && (
+                <div className={`text-xs p-2 rounded ${
+                  connectionStatus === 'success' ? 'bg-green-50 text-green-700' :
+                  connectionStatus === 'error' ? 'bg-red-50 text-red-700' :
+                  'bg-blue-50 text-blue-700'
+                }`}>
+                  {connectionStatus === 'testing' ? '测试中...' : connectionMessage}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleTestConnection}
+                  disabled={!serverUrl.trim() || connectionStatus === 'testing'}
+                  className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  测试连接
+                </button>
+                {isConnected ? (
+                  <button
+                    onClick={handleDisconnect}
+                    className="flex-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    断开连接
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSaveConnection}
+                    disabled={!serverUrl.trim() || connectionStatus === 'testing'}
+                    className="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    保存并连接
+                  </button>
+                )}
+              </div>
+
+              {isConnected && (
+                <>
+                  <div className="border-t border-gray-100 pt-3">
+                    <button
+                      onClick={handleUpdateFromServer}
+                      disabled={updateState === 'testing'}
+                      className="w-full px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {updateState === 'testing' ? '检查中...' : '从服务器更新任务'}
+                    </button>
+                  </div>
+
+                  {updateState !== 'idle' && updateState !== 'testing' && updateState !== 'confirm' && (
+                    <div className={`text-xs p-2 rounded ${
+                      updateState === 'success' ? 'bg-green-50 text-green-700' :
+                      'bg-red-50 text-red-700'
+                    }`}>
+                      {updateMessage}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
@@ -280,6 +440,77 @@ export function SettingsPanel({
           </div>
         </div>
       </div>
+
+      {/* 任务变化确认对话框 */}
+      {updateState === 'confirm' && pendingChanges && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] overflow-y-auto">
+            <div className="p-5 border-b border-gray-100">
+              <h3 className="text-lg font-bold text-gray-800">确认更新</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-gray-600">从服务器获取到以下任务变化：</p>
+
+              {pendingChanges.added.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-green-700 mb-2">✚ 新增任务 ({pendingChanges.added.length})</h4>
+                  <ul className="text-sm text-gray-600 space-y-1 pl-4">
+                    {pendingChanges.added.map((title) => (
+                      <li key={title}>· {title}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {pendingChanges.removed.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-red-700 mb-2">✖ 删除任务 ({pendingChanges.removed.length})</h4>
+                  <ul className="text-sm text-gray-600 space-y-1 pl-4">
+                    {pendingChanges.removed.map((title) => (
+                      <li key={title}>· {title}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {pendingChanges.modified.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-amber-700 mb-2">✎ 修改任务 ({pendingChanges.modified.length})</h4>
+                  <ul className="text-sm text-gray-600 space-y-1 pl-4">
+                    {pendingChanges.modified.map((title) => (
+                      <li key={title}>· {title}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="p-3 bg-amber-50 rounded-lg text-xs text-amber-700">
+                ⚠️ 此操作将覆盖任务信息，但保留当前进度
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => { setUpdateState('idle'); setPendingChanges(null); }}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={() => { 
+                    setUpdateState('success')
+                    setPendingChanges(null)
+                    setUpdateMessage('更新成功')
+                    onClose()
+                  }}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                >
+                  确认更新
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

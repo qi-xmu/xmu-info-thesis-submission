@@ -7,9 +7,10 @@ import { Timeline } from './components/Timeline'
 import { RoleModal } from './components/RoleModal'
 import { SettingsPanel } from './components/SettingsPanel'
 import { CurrentTask } from './components/CurrentTask'
+import { DataImportScreen } from './components/DataImportScreen'
 import type { RoleFilter } from './types'
 
-const ROLE_KEY = 'thesis_tracker_role'
+const ROLE_KEY = 'task_tracker_role'
 
 function loadRole(): RoleFilter | null {
   const r = localStorage.getItem(ROLE_KEY)
@@ -22,13 +23,27 @@ function saveRole(role: RoleFilter) {
 }
 
 export default function App() {
-  const { data, progress, loading, toggleTask, toggleSubTask, toggleSubFile, resetProgress, importProgress, importData } = useStore()
+  const { 
+    data, 
+    progress, 
+    loading, 
+    toggleTask, 
+    toggleSubTask, 
+    toggleSubFile, 
+    resetProgress, 
+    importProgress, 
+    importData,
+    connectToServer,
+    disconnectServer,
+    updateFromServer
+  } = useStore()
   const [role, setRole] = useState<RoleFilter | null>(loadRole)
   const [selectedPhaseId, setSelectedPhaseId] = useState<number | null>(() => {
-    const saved = localStorage.getItem('thesis_tracker_phase')
+    const saved = localStorage.getItem('task_tracker_phase')
     return saved ? Number(saved) : null
   })
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [timelineOpen, setTimelineOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const handleRoleSelect = (r: RoleFilter) => {
@@ -38,7 +53,7 @@ export default function App() {
 
   const handleSelectPhase = (id: number | null) => {
     setSelectedPhaseId(id)
-    localStorage.setItem('thesis_tracker_phase', id !== null ? String(id) : '')
+    localStorage.setItem('task_tracker_phase', id !== null ? String(id) : '')
     setSidebarOpen(false)
   }
 
@@ -52,14 +67,10 @@ export default function App() {
 
   if (!data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-gray-500 mb-2">无法加载数据</div>
-          <div className="text-xs text-gray-400">
-            请确保后端服务已启动，或检查网络连接
-          </div>
-        </div>
-      </div>
+      <DataImportScreen
+        onImportData={importData}
+        onConnectServer={connectToServer}
+      />
     )
   }
 
@@ -85,9 +96,12 @@ export default function App() {
         onImportProgress={importProgress}
         onImportData={importData}
         onReset={resetProgress}
+        onConnectServer={connectToServer}
+        onDisconnectServer={disconnectServer}
+        onUpdateFromServer={updateFromServer}
       />
 
-      {/* 悬浮目录按钮 */}
+      {/* 悬浮目录按钮 - 左上角 */}
       <button
         onClick={() => setSidebarOpen(true)}
         className="lg:hidden fixed top-3 left-3 z-30 p-2 bg-white shadow-md rounded-lg border border-gray-200 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
@@ -97,12 +111,42 @@ export default function App() {
         </svg>
       </button>
 
+      {/* 悬浮时间轴按钮 - 右上角 */}
+      <button
+        onClick={() => setTimelineOpen(true)}
+        className="xl:hidden fixed top-3 right-3 z-30 p-2 bg-white shadow-md rounded-lg border border-gray-200 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+
+      {/* 悬浮设置按钮 - 右下角 */}
+      <button
+        onClick={() => setSettingsOpen(true)}
+        className="fixed bottom-4 right-4 xl:right-72 z-30 p-2.5 bg-white shadow-md rounded-full border border-gray-200 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
+
       <div className="flex">
-        {/* 移动端遮罩 */}
+        {/* 目录遮罩 */}
         {sidebarOpen && (
           <div
             className="fixed inset-0 z-40 bg-black/30 lg:hidden"
             onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* 时间轴遮罩 */}
+        {timelineOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/30 xl:hidden"
+            onClick={() => setTimelineOpen(false)}
           />
         )}
 
@@ -136,7 +180,6 @@ export default function App() {
               site={data.site}
               progress={progress}
               phases={data.phases}
-              onSettingsClick={() => setSettingsOpen(true)}
             />
 
             <CurrentTask
@@ -185,7 +228,19 @@ export default function App() {
         </main>
 
         {/* 右侧时间轴 */}
-        <aside className="hidden xl:block w-64 flex-shrink-0 sticky top-0 h-screen overflow-y-auto border-l border-gray-200 bg-white p-4">
+        <aside
+          className={`fixed inset-y-0 right-0 z-50 w-72 bg-white border-l border-gray-200 pl-4 pr-10 pt-4 pb-8 overflow-y-auto transition-transform duration-200 xl:sticky xl:top-0 xl:h-screen xl:w-64 xl:translate-x-0 xl:flex-shrink-0 xl:px-4 ${
+            timelineOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+        >
+          <button
+            onClick={() => setTimelineOpen(false)}
+            className="xl:hidden absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
           <Timeline phases={data.phases} role={effectiveRole} selectedPhaseId={selectedPhaseId} />
         </aside>
       </div>

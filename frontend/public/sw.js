@@ -1,4 +1,4 @@
-const CACHE_NAME = 'thesis-tracker-v2'
+const CACHE_NAME = 'task-tracker-v1'
 
 self.addEventListener('install', () => {
   self.skipWaiting()
@@ -23,6 +23,12 @@ self.addEventListener('fetch', (event) => {
   // Skip non-http(s) requests (chrome-extension, etc.)
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return
 
+  // Skip WebSocket upgrade requests (needed for Vite HMR)
+  if (request.headers.get('upgrade')?.toLowerCase() === 'websocket') return
+
+  // Skip Vite internal requests (HMR, dependencies, etc.)
+  if (url.pathname.startsWith('/@') || url.pathname.includes('__vite')) return
+
   // API requests: network first, cache fallback
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
@@ -32,7 +38,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
           return res
         })
-        .catch(() => caches.match(request))
+        .catch(() => caches.match(request).then((c) => c || new Response('Offline', { status: 503 })))
     )
     return
   }
@@ -46,7 +52,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
           return res
         })
-        .catch(() => caches.match(request).then((c) => c || caches.match('/')))
+        .catch(() => caches.match(request).then((c) => c || caches.match('/').then((h) => h || new Response('Offline', { status: 503 }))))
     )
     return
   }

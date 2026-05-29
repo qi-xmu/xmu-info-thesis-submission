@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { RoleFilter, RoleOption } from '../types'
 
 export function RoleModal({
@@ -7,6 +8,16 @@ export function RoleModal({
   roles: RoleOption[]
   onSelect: (role: RoleFilter) => void
 }) {
+  useEffect(() => {
+    if (roles.length === 0) {
+      onSelect('all')
+    } else if (roles.length === 1) {
+      onSelect(roles[0].value as RoleFilter)
+    }
+  }, [roles, onSelect])
+
+  if (roles.length <= 1) return null
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm mx-4">

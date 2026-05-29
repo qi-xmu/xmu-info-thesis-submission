@@ -26,3 +26,5 @@ dev = { cmd = "pixi run backend & pixi run frontend-dev", depends-on = ["seed", 
 build = { cmd = "pixi run frontend-build", depends-on = ["seed"] }
 db-export = { cmd = "python -m app.db_tool export", cwd = "backend" }
 db-import = { cmd = "python -m app.db_tool import", cwd = "backend" }
+md2json = { cmd = "python -m app.md_tool to-json", cwd = "backend" }
+json2md = { cmd = "python -m app.md_tool to-md", cwd = "backend" }

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import type { FullData, ProgressMap } from '../types'
-import { loadData, needsRefresh, getCachedData } from '../api/client'
+import type { FullData, ProgressMap, Phase } from '../types'
+import { loadData, getCachedData, setServerUrl as saveServerUrl, clearServerUrl, fetchFromServer } from '../api/client'
 
-const PROGRESS_KEY = 'thesis_tracker_progress'
+const PROGRESS_KEY = 'task_tracker_progress'
 
 function loadProgress(): ProgressMap {
   const raw = localStorage.getItem(PROGRESS_KEY)
@@ -11,6 +11,54 @@ function loadProgress(): ProgressMap {
 
 function saveProgress(progress: ProgressMap) {
   localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress))
+}
+
+export interface TaskChanges {
+  added: string[]
+  removed: string[]
+  modified: string[]
+}
+
+function computeTaskChanges(oldPhases: Phase[], newPhases: Phase[]): TaskChanges {
+  const oldTasks = new Map<string, { title: string; description: string | null }>()
+  const newTasks = new Map<string, { title: string; description: string | null }>()
+
+  for (const phase of oldPhases) {
+    for (const task of phase.tasks) {
+      oldTasks.set(task.title, { title: task.title, description: task.notes.join('\n') })
+    }
+  }
+
+  for (const phase of newPhases) {
+    for (const task of phase.tasks) {
+      newTasks.set(task.title, { title: task.title, description: task.notes.join('\n') })
+    }
+  }
+
+  const added: string[] = []
+  const removed: string[] = []
+  const modified: string[] = []
+
+  for (const [title] of newTasks) {
+    if (!oldTasks.has(title)) {
+      added.push(title)
+    }
+  }
+
+  for (const [title] of oldTasks) {
+    if (!newTasks.has(title)) {
+      removed.push(title)
+    }
+  }
+
+  for (const [title, newTask] of newTasks) {
+    const oldTask = oldTasks.get(title)
+    if (oldTask && oldTask.description !== newTask.description) {
+      modified.push(title)
+    }
+  }
+
+  return { added, removed, modified }
 }
 
 export function useStore() {
@@ -25,16 +73,43 @@ export function useStore() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-
-    const interval = setInterval(async () => {
-      if (await needsRefresh()) {
-        const d = await loadData()
-        setData(d)
-      }
-    }, 60000)
-
-    return () => clearInterval(interval)
   }, [])
+
+  const connectToServer = useCallback(async (url: string): Promise<boolean> => {
+    try {
+      saveServerUrl(url)
+      const d = await fetchFromServer(url)
+      localStorage.setItem('task_tracker_data', JSON.stringify(d))
+      localStorage.setItem('task_tracker_updated_at', d.updated_at)
+      setData(d)
+      return true
+    } catch {
+      clearServerUrl()
+      return false
+    }
+  }, [])
+
+  const disconnectServer = useCallback(() => {
+    clearServerUrl()
+  }, [])
+
+  const updateFromServer = useCallback(async (): Promise<{ success: boolean; changes?: TaskChanges }> => {
+    const serverUrl = localStorage.getItem('task_tracker_server_url')
+    if (!serverUrl) {
+      return { success: false }
+    }
+
+    try {
+      const newData = await fetchFromServer(serverUrl)
+      const changes = data ? computeTaskChanges(data.phases, newData.phases) : undefined
+      localStorage.setItem('task_tracker_data', JSON.stringify(newData))
+      localStorage.setItem('task_tracker_updated_at', newData.updated_at)
+      setData(newData)
+      return { success: true, changes }
+    } catch {
+      return { success: false }
+    }
+  }, [data])
 
   const toggleTask = useCallback((taskId: number) => {
     setProgress((prev) => {
@@ -125,8 +200,21 @@ export function useStore() {
 
   const importData = useCallback((newData: FullData) => {
     setData(newData)
-    localStorage.setItem('thesis_tracker_data', JSON.stringify(newData))
+    localStorage.setItem('task_tracker_data', JSON.stringify(newData))
   }, [])
 
-  return { data, progress, loading, toggleTask, toggleSubTask, toggleSubFile, resetProgress, importProgress, importData }
+  return { 
+    data, 
+    progress, 
+    loading, 
+    toggleTask, 
+    toggleSubTask, 
+    toggleSubFile, 
+    resetProgress, 
+    importProgress, 
+    importData,
+    connectToServer,
+    disconnectServer,
+    updateFromServer
+  }
 }
