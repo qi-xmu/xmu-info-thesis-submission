@@ -132,7 +132,7 @@ export default function App() {
       {/* 悬浮深色模式按钮 - 设置按钮上方 */}
       <button
         onClick={() => setDarkMode(!darkMode)}
-        className="fixed bottom-[4.5rem] right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
+        className="fixed bottom-18 right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
       >
         {darkMode ? (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,7 +176,7 @@ export default function App() {
 
         {/* 左侧目录 */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-r border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 lg:flex-shrink-0 ${
+          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-r border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 lg:shrink-0 ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -256,7 +256,7 @@ export default function App() {
 
         {/* 右侧时间轴 */}
         <aside
-          className={`fixed inset-y-0 right-0 z-50 w-80 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-l border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 xl:sticky xl:top-0 xl:h-screen xl:w-72 xl:translate-x-0 xl:flex-shrink-0 ${
+          className={`fixed inset-y-0 right-0 z-50 w-80 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-l border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 xl:sticky xl:top-0 xl:h-screen xl:w-72 xl:translate-x-0 xl:shrink-0 ${
             timelineOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
