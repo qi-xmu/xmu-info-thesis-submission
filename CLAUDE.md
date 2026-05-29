@@ -26,12 +26,12 @@ pixi run frontend-build
 
 # 数据库操作
 pixi run seed                    # 从 seed_data.py 初始化 DB
-pixi run db-export               # DB → data/tracker.json
-pixi run db-import               # data/tracker.json → DB
+pixi run db-export               # DB → ../data/tracker.json
+pixi run db-import               # ../data/tracker.json → DB
 
 # Markdown 双向转换
-pixi run md2json -- data/tracker.md -o data/tracker.json
-pixi run json2md -- data/tracker.json -o data/tracker.md
+pixi run md2json -- ../data/tracker.md -o ../data/tracker.json
+pixi run json2md -- ../data/tracker.json -o ../data/tracker.md
 ```
 
 ## Architecture
@@ -46,7 +46,7 @@ tracker.md   ←→ md_tool ←→ tracker.json
               FastAPI /api/data → 前端加载 → localStorage 缓存
 ```
 
-后端 API 是**只读数据源**，读取 `backend/data/tracker.json` 返回数据。前端加载后可离线运行，用户进度存储在 localStorage。
+后端 API 是**只读数据源**，读取 `data/tracker.json` 返回数据。前端加载后可离线运行，用户进度存储在 localStorage。
 
 ### 后端 (`backend/app/`)
 

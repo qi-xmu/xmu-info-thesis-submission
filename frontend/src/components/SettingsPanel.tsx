@@ -234,7 +234,7 @@ export function SettingsPanel({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60" onClick={handleClose}>
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 shrink-0">
           <h2 className="text-lg font-bold text-gray-800 dark:text-white">设置</h2>
           <button
             onClick={handleClose}
@@ -264,7 +264,7 @@ export function SettingsPanel({
                       : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
-                  <div className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${
+                  <div className={`w-3 h-3 rounded-full border-2 shrink-0 ${
                     role === r.value ? 'border-blue-500 bg-blue-500' : 'border-gray-300 dark:border-gray-500'
                   }`} />
                   <div>

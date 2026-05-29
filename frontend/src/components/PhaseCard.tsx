@@ -57,7 +57,7 @@ export function PhaseCard({
               </p>
             )}
           </div>
-          <div className="flex items-center gap-3 flex-shrink-0 pt-1">
+          <div className="flex items-center gap-3 shrink-0 pt-1">
             <div className="w-28 hidden sm:block">
               <ProgressBar value={completedCount} total={relevantTasks.length} />
             </div>
@@ -68,7 +68,7 @@ export function PhaseCard({
         </div>
       </div>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent mx-5" />
+      <div className="h-px bg-linear-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent mx-5" />
 
       {expanded && (
         <div className="p-5 md:p-6 space-y-3">

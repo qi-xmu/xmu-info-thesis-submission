@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { FullData } from '../types'
 import { testConnection, getServerUrl } from '../api/client'
 
@@ -12,9 +12,17 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [connectionMessage, setConnectionMessage] = useState('')
   const [importing, setImporting] = useState(false)
-  const [showHelp, setShowHelp] = useState(false)
+  const [siteTitle, setSiteTitle] = useState('')
+  const [showHelp, setShowHelp] = useState(() => window.innerWidth >= 768)
   const [isDragging, setIsDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    fetch('/tracker.json')
+      .then((res) => res.json())
+      .then((json) => setSiteTitle(json.site?.title || ''))
+      .catch(() => {})
+  }, [])
 
   const processFile = (file: File) => {
     setImporting(true)
@@ -61,6 +69,24 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
     if (!file) return
     processFile(file)
     e.target.value = ''
+  }
+
+  const handleLoadDefault = async () => {
+    setImporting(true)
+    try {
+      const res = await fetch('/tracker.json')
+      if (!res.ok) throw new Error('Not found')
+      const json = await res.json()
+      const data: FullData = {
+        site: json.site || { title: '任务追踪', description: '', roles: [] },
+        phases: json.phases || [],
+        updated_at: json.updated_at || new Date().toISOString()
+      }
+      onImportData(data)
+    } catch {
+      alert('加载默认数据失败')
+      setImporting(false)
+    }
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -126,7 +152,7 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
         </div>
       )}
 
-      <div className="w-full max-w-md space-y-4">
+      <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 mb-4">
             <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,115 +163,164 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
           <p className="text-sm text-gray-500 mt-1">选择数据来源或拖入文件开始使用</p>
         </div>
 
-        {/* 上传文件 */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">上传文件</h2>
-              <p className="text-xs text-gray-500">从本地导入或拖入 JSON 数据文件</p>
-            </div>
-          </div>
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* 使用说明 - 宽屏左侧 */}
+          <div className="hidden md:block md:w-64 md:shrink-0">
+            <div className="bg-white rounded-xl shadow-md p-6 space-y-4 sticky top-8">
+              <h3 className="font-semibold text-gray-900 text-sm">使用说明</h3>
+              <div className="p-3 bg-blue-50 rounded-xl">
+                <h4 className="font-medium text-blue-800 mb-1 text-xs">1. 获取任务数据</h4>
+                <p className="text-xs text-gray-600">通过上传 JSON 文件或连接后端服务器获取任务数据。</p>
+              </div>
 
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".json"
-            className="hidden"
-            onChange={handleFileSelect}
-          />
+              <div className="p-3 bg-emerald-50 rounded-xl">
+                <h4 className="font-medium text-emerald-800 mb-1 text-xs">2. 追踪任务进度</h4>
+                <p className="text-xs text-gray-600">勾选复选框标记完成状态，进度自动保存到浏览器。</p>
+              </div>
 
-          <button
-            onClick={() => fileRef.current?.click()}
-            disabled={importing}
-            className="w-full p-4 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition-all duration-200 disabled:opacity-50"
-          >
-            {importing ? '导入中...' : '点击选择文件或拖入文件'}
-          </button>
-        </div>
-
-        {/* 连接后端 */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">连接后端</h2>
-              <p className="text-xs text-gray-500">输入服务器地址获取数据</p>
+              <div className="p-3 bg-amber-50 rounded-xl">
+                <h4 className="font-medium text-amber-800 mb-1 text-xs">3. 导出与备份</h4>
+                <p className="text-xs text-gray-600">点击设置按钮导出进度为 JSON 文件。</p>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <input
-              type="text"
-              value={serverUrl}
-              onChange={(e) => setServerUrl(e.target.value)}
-              placeholder="http://localhost:8000"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            />
+          {/* 选项卡片 */}
+          <div className="flex-1 space-y-4 max-w-md mx-auto md:mx-0">
+            {/* 使用默认数据 */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-3-3v6" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">使用默认数据</h2>
+                  <p className="text-xs text-gray-500">{siteTitle || '加载内置的 tracker.json 数据'}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLoadDefault}
+                disabled={importing}
+                className="w-full p-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+              >
+                加载默认数据
+              </button>
+            </div>
 
-            {connectionStatus !== 'idle' && (
-              <div className={`text-xs p-3 rounded-xl ${
-                connectionStatus === 'success' ? 'bg-emerald-50 text-emerald-700' :
-                connectionStatus === 'error' ? 'bg-red-50 text-red-700' :
-                'bg-blue-50 text-blue-700'
-              }`}>
-                {connectionStatus === 'testing' ? '测试中...' : connectionMessage}
+            {/* 上传文件 */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">上传文件</h2>
+                  <p className="text-xs text-gray-500">从本地导入或拖入 JSON 数据文件</p>
+                </div>
+              </div>
+
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={importing}
+                className="w-full p-4 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition-all duration-200 disabled:opacity-50"
+              >
+                {importing ? '导入中...' : '点击选择文件或拖入文件'}
+              </button>
+            </div>
+
+            {/* 连接后端 */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">连接后端</h2>
+                  <p className="text-xs text-gray-500">输入服务器地址获取数据</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={serverUrl}
+                  onChange={(e) => setServerUrl(e.target.value)}
+                  placeholder="http://localhost:8000"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
+
+                {connectionStatus !== 'idle' && (
+                  <div className={`text-xs p-3 rounded-xl ${
+                    connectionStatus === 'success' ? 'bg-emerald-50 text-emerald-700' :
+                    connectionStatus === 'error' ? 'bg-red-50 text-red-700' :
+                    'bg-blue-50 text-blue-700'
+                  }`}>
+                    {connectionStatus === 'testing' ? '测试中...' : connectionMessage}
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleTestConnection}
+                    disabled={!serverUrl.trim() || connectionStatus === 'testing'}
+                    className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200 disabled:opacity-50"
+                  >
+                    测试连接
+                  </button>
+                  <button
+                    onClick={handleConnect}
+                    disabled={!serverUrl.trim() || connectionStatus === 'testing'}
+                    className="flex-1 px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 disabled:opacity-50"
+                  >
+                    保存并连接
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 使用说明 - 窄屏折叠 */}
+            <button
+              onClick={() => setShowHelp(!showHelp)}
+              className="md:hidden w-full text-center text-sm text-gray-500 hover:text-gray-700 transition-colors py-2"
+            >
+              {showHelp ? '收起说明' : '查看使用说明'}
+            </button>
+
+            {showHelp && (
+              <div className="md:hidden bg-white rounded-xl shadow-md p-6 space-y-4">
+                <div className="p-3 bg-blue-50 rounded-xl">
+                  <h3 className="font-medium text-blue-800 mb-1 text-sm">1. 获取任务数据</h3>
+                  <p className="text-xs text-gray-600">通过上传 JSON 文件或连接后端服务器获取任务数据。</p>
+                </div>
+
+                <div className="p-3 bg-emerald-50 rounded-xl">
+                  <h3 className="font-medium text-emerald-800 mb-1 text-sm">2. 追踪任务进度</h3>
+                  <p className="text-xs text-gray-600">勾选复选框标记完成状态，进度自动保存到浏览器。</p>
+                </div>
+
+                <div className="p-3 bg-amber-50 rounded-xl">
+                  <h3 className="font-medium text-amber-800 mb-1 text-sm">3. 导出与备份</h3>
+                  <p className="text-xs text-gray-600">点击设置按钮导出进度为 JSON 文件。</p>
+                </div>
               </div>
             )}
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleTestConnection}
-                disabled={!serverUrl.trim() || connectionStatus === 'testing'}
-                className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all duration-200 disabled:opacity-50"
-              >
-                测试连接
-              </button>
-              <button
-                onClick={handleConnect}
-                disabled={!serverUrl.trim() || connectionStatus === 'testing'}
-                className="flex-1 px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 disabled:opacity-50"
-              >
-                保存并连接
-              </button>
-            </div>
           </div>
         </div>
-
-        {/* 使用说明 */}
-        <button
-          onClick={() => setShowHelp(!showHelp)}
-          className="w-full text-center text-sm text-gray-500 hover:text-gray-700 transition-colors py-2"
-        >
-          {showHelp ? '收起说明' : '查看使用说明'}
-        </button>
-
-        {showHelp && (
-          <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
-            <div className="p-3 bg-blue-50 rounded-xl">
-              <h3 className="font-medium text-blue-800 mb-1 text-sm">1. 获取任务数据</h3>
-              <p className="text-xs text-gray-600">通过上传 JSON 文件或连接后端服务器获取任务数据。</p>
-            </div>
-
-            <div className="p-3 bg-emerald-50 rounded-xl">
-              <h3 className="font-medium text-emerald-800 mb-1 text-sm">2. 追踪任务进度</h3>
-              <p className="text-xs text-gray-600">勾选复选框标记完成状态，进度自动保存到浏览器。</p>
-            </div>
-
-            <div className="p-3 bg-amber-50 rounded-xl">
-              <h3 className="font-medium text-amber-800 mb-1 text-sm">3. 导出与备份</h3>
-              <p className="text-xs text-gray-600">点击设置按钮导出进度为 JSON 文件。</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

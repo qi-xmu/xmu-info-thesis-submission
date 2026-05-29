@@ -57,7 +57,7 @@ export default function App() {
   const [showFireworks, setShowFireworks] = useState(false)
   const [fireworksKey, setFireworksKey] = useState(0)
   const progressRef = useRef(progress)
-  progressRef.current = progress
+  useEffect(() => { progressRef.current = progress })
 
   const triggerFireworks = useCallback(() => {
     setFireworksKey((k) => k + 1)
@@ -72,7 +72,7 @@ export default function App() {
 
   const handleToggleSubTask = useCallback((taskTitle: string, subTitle: string) => {
     const key = `st:${taskTitle}:${subTitle}`
-    if (!!progressRef.current[key]) {
+    if (progressRef.current[key]) {
       toggleSubTask(taskTitle, subTitle)
       return
     }
@@ -92,7 +92,7 @@ export default function App() {
 
   const handleToggleSubFile = useCallback((taskTitle: string, fileName: string) => {
     const key = `sf:${taskTitle}:${fileName}`
-    if (!!progressRef.current[key]) {
+    if (progressRef.current[key]) {
       toggleSubFile(taskTitle, fileName)
       return
     }

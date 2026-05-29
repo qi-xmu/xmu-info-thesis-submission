@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node -e \"require('fs').copyFileSync('../data/tracker.json','public/tracker.json')\"",
+    "prebuild": "node -e \"require('fs').copyFileSync('../data/tracker.json','public/tracker.json')\"",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

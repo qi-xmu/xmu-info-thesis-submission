@@ -5,7 +5,7 @@ __pycache__/
 *.egg-info/
 
 # Database
-backend/data/tracker.db
+data/tracker.db
 
 # Node
 node_modules/

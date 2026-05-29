@@ -75,7 +75,7 @@ export function Fireworks({ onComplete }: FireworksProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef = useRef(0)
   const onCompleteRef = useRef(onComplete)
-  onCompleteRef.current = onComplete
+  useEffect(() => { onCompleteRef.current = onComplete })
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -246,12 +246,12 @@ export function Fireworks({ onComplete }: FireworksProps) {
       cancelAnimationFrame(animRef.current)
       window.removeEventListener('resize', resize)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-[9999] pointer-events-none"
+      className="fixed inset-0 z-9999 pointer-events-none"
     />
   )
 }

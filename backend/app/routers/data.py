@@ -6,7 +6,7 @@ import os
 
 router = APIRouter(prefix="/api", tags=["data"])
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data")
 TRACKER_JSON = os.path.join(DATA_DIR, "tracker.json")
 
 
