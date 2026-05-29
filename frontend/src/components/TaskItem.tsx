@@ -1,5 +1,5 @@
 import type { Task, RoleFilter, ProgressMap, RoleOption } from '../types'
-import { taskKey, subTaskKey, subFileKey, domId } from '../types'
+import { subTaskKey, subFileKey, domId } from '../types'
 import { TimeBadge } from './TimeBadge'
 import { MarkdownText } from './MarkdownText'
 import { getRoleLabels, getRoleColors } from '../utils/roles'

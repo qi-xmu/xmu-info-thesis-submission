@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useRef, useLayoutEffect } from 'react'
 import type { Phase, ProgressMap, RoleFilter, RoleOption } from '../types'
 import { taskKey } from '../types'
 import { TaskItem } from './TaskItem'
@@ -252,6 +252,25 @@ export function CurrentTask({
   }
 
   // 情况3：有未完成的任务
+  if (!current) {
+    return (
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+          <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">任务转轮</h2>
+        </div>
+        <div className="bg-gradient-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <svg className="w-5 h-5 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-emerald-700 dark:text-emerald-400 font-medium">所有任务已完成！</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3">
