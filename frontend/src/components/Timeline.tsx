@@ -16,15 +16,15 @@ const DOT_COLORS = [
 ]
 
 const BG_COLORS = [
-  'bg-blue-50/80',
-  'bg-amber-50/80',
-  'bg-emerald-50/80',
+  'bg-blue-50/80 dark:bg-blue-900/30',
+  'bg-amber-50/80 dark:bg-amber-900/30',
+  'bg-emerald-50/80 dark:bg-emerald-900/30',
 ]
 
 const TEXT_COLORS = [
-  'text-blue-700',
-  'text-amber-700',
-  'text-emerald-700',
+  'text-blue-700 dark:text-blue-400',
+  'text-amber-700 dark:text-amber-400',
+  'text-emerald-700 dark:text-emerald-400',
 ]
 
 export function Timeline({
@@ -69,18 +69,18 @@ export function Timeline({
   if (sorted.length === 0) {
     return (
       <div className="text-sm">
-        <div className="font-bold text-gray-900 mb-4 text-base tracking-tight">时间轴</div>
-        <div className="text-sm text-gray-400 py-8 text-center">暂无时间节点</div>
+        <div className="font-bold text-gray-900 dark:text-white mb-4 text-base tracking-tight">时间轴</div>
+        <div className="text-sm text-gray-400 dark:text-gray-500 py-8 text-center">暂无时间节点</div>
       </div>
     )
   }
 
   return (
     <div className="text-sm">
-      <div className="font-bold text-gray-900 mb-4 text-base tracking-tight">时间轴</div>
+      <div className="font-bold text-gray-900 dark:text-white mb-4 text-base tracking-tight">时间轴</div>
 
       <div className="relative">
-        <div className="absolute left-[7px] top-3 bottom-3 w-px bg-gradient-to-b from-gray-300 via-gray-200 to-transparent" />
+        <div className="absolute left-[7px] top-3 bottom-3 w-px bg-gradient-to-b from-gray-300 dark:from-gray-600 via-gray-200 dark:via-gray-700 to-transparent" />
 
         {sorted.map((item, i) => {
           const colorIdx = item.phaseIndex % DOT_COLORS.length
@@ -95,23 +95,23 @@ export function Timeline({
               onClick={() => handleClick(item.taskTitle)}
             >
               <div
-                className={`absolute left-0 top-2 w-[15px] h-[15px] rounded-full ${dotColor} bg-white border-[3px] group-hover:scale-125 transition-transform duration-200`}
+                className={`absolute left-0 top-2 w-[15px] h-[15px] rounded-full ${dotColor} bg-white dark:bg-gray-900 border-[3px] group-hover:scale-125 transition-transform duration-200`}
               />
 
-              <div className={`rounded-xl p-3 ${bg} border border-white/50 group-hover:shadow-md group-hover:border-white transition-all duration-200`}>
+              <div className={`rounded-xl p-3 ${bg} border border-white/50 dark:border-gray-800/50 group-hover:shadow-md group-hover:border-white dark:group-hover:border-gray-700 transition-all duration-200`}>
                 <div className={`font-semibold text-xs leading-snug ${textColor}`}>
                   {item.taskTitle}
                 </div>
                 <div className="mt-1.5 flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-800">
+                  <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
                     {item.name}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {item.deadline}
                   </span>
                 </div>
                 {item.remark && (
-                  <div className="mt-1.5 text-[11px] text-gray-500 leading-snug bg-white/50 rounded px-2 py-1">
+                  <div className="mt-1.5 text-[11px] text-gray-500 dark:text-gray-400 leading-snug bg-white/50 dark:bg-gray-800/50 rounded px-2 py-1">
                     {item.remark}
                   </div>
                 )}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from './store/useStore'
 import { Header } from './components/Header'
 import { PhaseCard } from './components/PhaseCard'
@@ -11,6 +11,7 @@ import { DataImportScreen } from './components/DataImportScreen'
 import type { RoleFilter } from './types'
 
 const ROLE_KEY = 'task_tracker_role'
+const DARK_MODE_KEY = 'task_tracker_dark_mode'
 
 function loadRole(): RoleFilter | null {
   const r = localStorage.getItem(ROLE_KEY)
@@ -45,6 +46,20 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [timelineOpen, setTimelineOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem(DARK_MODE_KEY)
+    if (saved !== null) return saved === 'true'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
+
+  useEffect(() => {
+    localStorage.setItem(DARK_MODE_KEY, String(darkMode))
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [darkMode])
 
   const handleRoleSelect = (r: RoleFilter) => {
     setRole(r)
@@ -74,7 +89,7 @@ export default function App() {
     : null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {role === null && <RoleModal roles={roles} onSelect={handleRoleSelect} />}
 
       <SettingsPanel
@@ -97,7 +112,7 @@ export default function App() {
       {/* 悬浮目录按钮 - 左上角 */}
       <button
         onClick={() => setSidebarOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-30 p-2.5 bg-white shadow-lg rounded-xl text-gray-600 hover:text-gray-900 hover:shadow-xl transition-all duration-200"
+        className="lg:hidden fixed top-4 left-4 z-30 p-2.5 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -107,17 +122,33 @@ export default function App() {
       {/* 悬浮时间轴按钮 - 右上角 */}
       <button
         onClick={() => setTimelineOpen(true)}
-        className="xl:hidden fixed top-4 right-4 z-30 p-2.5 bg-white shadow-lg rounded-xl text-gray-600 hover:text-gray-900 hover:shadow-xl transition-all duration-200"
+        className="xl:hidden fixed top-4 right-4 z-30 p-2.5 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </button>
 
+      {/* 悬浮深色模式按钮 - 设置按钮上方 */}
+      <button
+        onClick={() => setDarkMode(!darkMode)}
+        className="fixed bottom-[4.5rem] right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
+      >
+        {darkMode ? (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        ) : (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        )}
+      </button>
+
       {/* 悬浮设置按钮 - 右下角 */}
       <button
         onClick={() => setSettingsOpen(true)}
-        className="fixed bottom-5 right-5 xl:right-72 z-30 p-3 bg-white shadow-lg rounded-xl text-gray-600 hover:text-gray-900 hover:shadow-xl transition-all duration-200"
+        className="fixed bottom-5 right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800 shadow-lg rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -145,7 +176,7 @@ export default function App() {
 
         {/* 左侧目录 */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur border-r border-gray-200/50 p-5 overflow-y-auto transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 lg:flex-shrink-0 ${
+          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-r border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 lg:flex-shrink-0 ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -222,7 +253,7 @@ export default function App() {
 
         {/* 右侧时间轴 */}
         <aside
-          className={`fixed inset-y-0 right-0 z-50 w-80 bg-white/95 backdrop-blur border-l border-gray-200/50 p-5 overflow-y-auto transition-transform duration-300 xl:sticky xl:top-0 xl:h-screen xl:w-72 xl:translate-x-0 xl:flex-shrink-0 ${
+          className={`fixed inset-y-0 right-0 z-50 w-80 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-l border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 xl:sticky xl:top-0 xl:h-screen xl:w-72 xl:translate-x-0 xl:flex-shrink-0 ${
             timelineOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >

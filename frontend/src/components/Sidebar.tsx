@@ -51,7 +51,7 @@ export function Sidebar({
 
   return (
     <nav className="text-sm space-y-1">
-      <div className="font-bold text-gray-900 mb-4 text-base tracking-tight">目录</div>
+      <div className="font-bold text-gray-900 dark:text-white mb-4 text-base tracking-tight">目录</div>
       {phases.map((phase, phaseIdx) => {
         const relevantTasks = phase.tasks.filter(
           (t) => t.applies_to === 'all' || t.applies_to === role || role === 'all'
@@ -66,7 +66,7 @@ export function Sidebar({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => toggleExpand(phase.title)}
-                className="p-1 text-gray-400 hover:text-gray-600 flex-shrink-0 transition-colors"
+                className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0 transition-colors"
               >
                 <svg
                   className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
@@ -82,13 +82,13 @@ export function Sidebar({
                 onClick={() => handlePhaseClick(phaseIdx, phase.title)}
                 className={`flex items-center gap-2 flex-1 text-left transition-all duration-150 rounded-lg px-3 py-2 ${
                   isSelected
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
                 }`}
               >
                 <span
                   className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors ${
-                    isSelected ? 'bg-blue-600' : 'bg-gray-300'
+                    isSelected ? 'bg-blue-600 dark:bg-blue-400' : 'bg-gray-300 dark:bg-gray-600'
                   }`}
                 />
                 <span className="font-medium truncate flex-1">
@@ -96,8 +96,8 @@ export function Sidebar({
                 </span>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                   completed === total && total > 0
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-gray-100 text-gray-500'
+                    ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                 }`}>
                   {completed}/{total}
                 </span>
@@ -105,7 +105,7 @@ export function Sidebar({
             </div>
 
             {isExpanded && (
-              <div className="ml-4 mt-1 space-y-0.5 pl-3 border-l border-gray-200">
+              <div className="ml-4 mt-1 space-y-0.5 pl-3 border-l border-gray-200 dark:border-gray-700">
                 {[...relevantTasks]
                   .sort((a, b) => {
                     const ac = progress[taskKey(a.title)] ? 1 : 0
@@ -118,8 +118,8 @@ export function Sidebar({
                       onClick={() => handleTaskClick(task.title)}
                       className={`block w-full text-left truncate py-1.5 px-2 rounded-md transition-colors text-sm ${
                         progress[taskKey(task.title)]
-                          ? 'text-gray-400 line-through hover:text-gray-500'
-                          : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                          ? 'text-gray-400 dark:text-gray-500 line-through hover:text-gray-500 dark:hover:text-gray-400'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'
                       }`}
                     >
                       {task.title}
@@ -131,17 +131,17 @@ export function Sidebar({
         )
       })}
 
-      <div className="border-t border-gray-100 pt-3 mt-4">
+      <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-4">
         <button
           onClick={() => onSelectPhase(null)}
           className={`flex items-center gap-2 w-full text-left transition-all duration-150 rounded-lg px-3 py-2 ${
             isAllMode
-              ? 'bg-blue-50 text-blue-700'
-              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+              ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
           }`}
         >
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-            isAllMode ? 'bg-blue-600' : 'bg-gray-300'
+            isAllMode ? 'bg-blue-600 dark:bg-blue-400' : 'bg-gray-300 dark:bg-gray-600'
           }`} />
           <span className="font-medium">全部阶段</span>
         </button>

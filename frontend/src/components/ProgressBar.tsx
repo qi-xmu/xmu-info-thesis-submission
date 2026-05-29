@@ -1,13 +1,13 @@
 export function ProgressBar({ value, total, variant = 'default' }: { value: number; total: number; variant?: 'default' | 'light' }) {
   const pct = total === 0 ? 0 : Math.round((value / total) * 100)
 
-  const trackColor = variant === 'light' ? 'bg-white/20' : 'bg-gray-200'
+  const trackColor = variant === 'light' ? 'bg-white/20' : 'bg-gray-200 dark:bg-gray-700'
   const fillColor = pct === 100
     ? 'bg-emerald-500'
     : variant === 'light'
       ? 'bg-white'
       : 'bg-gradient-to-r from-blue-500 to-blue-600'
-  const textColor = variant === 'light' ? 'text-gray-300' : 'text-gray-500'
+  const textColor = variant === 'light' ? 'text-gray-300' : 'text-gray-500 dark:text-gray-400'
 
   return (
     <div className="flex items-center gap-3">

@@ -36,7 +36,7 @@ export function PhaseCard({
   const completedCount = relevantTasks.filter((t) => progress[taskKey(t.title)]).length
 
   return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden scroll-mt-24">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden scroll-mt-24">
       <div
         className="px-5 md:px-6 pt-5 pb-4 cursor-pointer group"
         onClick={() => setExpanded(!expanded)}
@@ -44,11 +44,11 @@ export function PhaseCard({
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {phase.title}
               </h2>
               <svg
-                className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                className={`w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -57,7 +57,7 @@ export function PhaseCard({
               </svg>
             </div>
             {phase.description && (
-              <p className="mt-1 text-sm text-gray-600 leading-relaxed">
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                 {phase.description}
               </p>
             )}
@@ -66,14 +66,14 @@ export function PhaseCard({
             <div className="w-28 hidden sm:block">
               <ProgressBar value={completedCount} total={relevantTasks.length} />
             </div>
-            <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
+            <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
               {completedCount}/{relevantTasks.length}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mx-5" />
+      <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent mx-5" />
 
       {expanded && (
         <div className="p-5 md:p-6 space-y-3">
