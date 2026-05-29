@@ -1,12 +1,13 @@
 import { useState, useRef } from 'react'
-import type { RoleFilter, ProgressMap, Phase, FullData } from '../types'
+import type { RoleFilter, ProgressMap, Phase, FullData, SiteInfo } from '../types'
 import { getServerUrl, testConnection } from '../api/client'
 import type { TaskChanges } from '../store/useStore'
 
-function exportData(progress: ProgressMap, phases: Phase[]) {
+function exportData(progress: ProgressMap, phases: Phase[], site: SiteInfo) {
   const data = {
     exported_at: new Date().toISOString(),
     version: 2,
+    site,
     progress,
     phases,
   }
@@ -122,7 +123,7 @@ export function SettingsPanel({
       setConfirming(true)
       return
     }
-    exportData(progress, phases)
+    exportData(progress, phases, data.site)
     onReset()
     setConfirming(false)
     onClose()
@@ -133,7 +134,7 @@ export function SettingsPanel({
       setConfirmingAll(true)
       return
     }
-    exportData(progress, phases)
+    exportData(progress, phases, data.site)
     onResetAll()
     setConfirmingAll(false)
     onClose()
@@ -336,7 +337,7 @@ export function SettingsPanel({
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">数据管理</h3>
             <div className="space-y-2">
               <button
-                onClick={() => exportData(progress, phases)}
+                onClick={() => exportData(progress, phases, data.site)}
                 className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-left transition-colors"
               >
                 <span className="text-gray-400 dark:text-gray-500">↗</span>
