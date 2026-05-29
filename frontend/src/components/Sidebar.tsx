@@ -19,6 +19,21 @@ export function Sidebar({
     () => new Set(phases.map((p) => p.title))
   )
 
+  // 找到当前任务所在的阶段索引
+  const getCurrentPhaseIdx = () => {
+    for (const phase of phases) {
+      for (const task of phase.tasks) {
+        if (role !== 'all' && task.applies_to !== 'all' && task.applies_to !== role) continue
+        if (!progress[taskKey(task.title)]) {
+          return phases.indexOf(phase)
+        }
+      }
+    }
+    return null
+  }
+
+  const currentPhaseIdx = getCurrentPhaseIdx()
+
   const toggleExpand = (phaseTitle: string) => {
     setExpandedTitles((prev) => {
       const next = new Set(prev)
@@ -59,6 +74,7 @@ export function Sidebar({
         const completed = relevantTasks.filter((t) => progress[taskKey(t.title)]).length
         const total = relevantTasks.length
         const isSelected = !isAllMode && selectedPhaseId === phaseIdx
+        const isCurrentPhase = currentPhaseIdx === phaseIdx && !isAllMode
         const isExpanded = expandedTitles.has(phase.title)
 
         return (
@@ -83,12 +99,16 @@ export function Sidebar({
                 className={`flex items-center gap-2 flex-1 text-left transition-all duration-150 rounded-lg px-3 py-2 ${
                   isSelected
                     ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                    : isCurrentPhase
+                      ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
                 }`}
               >
                 <span
                   className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors ${
-                    isSelected ? 'bg-blue-600 dark:bg-blue-400' : 'bg-gray-300 dark:bg-gray-600'
+                    isSelected ? 'bg-blue-600 dark:bg-blue-400' 
+                    : isCurrentPhase ? 'bg-amber-500 dark:bg-amber-400'
+                    : 'bg-gray-300 dark:bg-gray-600'
                   }`}
                 />
                 <span className="font-medium truncate flex-1">
@@ -106,25 +126,27 @@ export function Sidebar({
 
             {isExpanded && (
               <div className="ml-4 mt-1 space-y-0.5 pl-3 border-l border-gray-200 dark:border-gray-700">
-                {[...relevantTasks]
-                  .sort((a, b) => {
-                    const ac = progress[taskKey(a.title)] ? 1 : 0
-                    const bc = progress[taskKey(b.title)] ? 1 : 0
-                    return ac - bc
-                  })
-                  .map((task) => (
+                {relevantTasks.map((task) => {
+                  const isCurrentTask = !progress[taskKey(task.title)] && 
+                    phaseIdx === currentPhaseIdx &&
+                    relevantTasks.indexOf(task) === relevantTasks.findIndex(t => !progress[taskKey(t.title)])
+                  
+                  return (
                     <button
                       key={task.title}
                       onClick={() => handleTaskClick(task.title)}
                       className={`block w-full text-left truncate py-1.5 px-2 rounded-md transition-colors text-sm ${
-                        progress[taskKey(task.title)]
-                          ? 'text-gray-400 dark:text-gray-500 line-through hover:text-gray-500 dark:hover:text-gray-400'
-                          : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'
+                        isCurrentTask
+                          ? 'text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/20'
+                          : progress[taskKey(task.title)]
+                            ? 'text-gray-400 dark:text-gray-500 line-through hover:text-gray-500 dark:hover:text-gray-400'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'
                       }`}
                     >
                       {task.title}
                     </button>
-                  ))}
+                  )
+                })}
               </div>
             )}
           </div>

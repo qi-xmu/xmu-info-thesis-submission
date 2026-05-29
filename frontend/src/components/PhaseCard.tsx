@@ -27,11 +27,6 @@ export function PhaseCard({
 
   const relevantTasks = phase.tasks
     .filter((t) => t.applies_to === 'all' || t.applies_to === role || role === 'all')
-    .sort((a, b) => {
-      const ac = progress[taskKey(a.title)] ? 1 : 0
-      const bc = progress[taskKey(b.title)] ? 1 : 0
-      return ac - bc
-    })
 
   const completedCount = relevantTasks.filter((t) => progress[taskKey(t.title)]).length
 

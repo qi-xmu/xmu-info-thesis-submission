@@ -13,12 +13,10 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
   const [connectionMessage, setConnectionMessage] = useState('')
   const [importing, setImporting] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const processFile = (file: File) => {
     setImporting(true)
     const reader = new FileReader()
     reader.onload = (ev) => {
@@ -56,7 +54,34 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
       }
     }
     reader.readAsText(file)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    processFile(file)
     e.target.value = ''
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file && file.name.endsWith('.json')) {
+      processFile(file)
+    } else {
+      alert('请拖入 JSON 格式的数据文件')
+    }
   }
 
   const handleTestConnection = async () => {
@@ -83,7 +108,24 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div
+      className="min-h-screen flex items-center justify-center bg-gray-50 p-4"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isDragging && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-blue-500/20 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <svg className="w-12 h-12 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p className="text-lg font-medium text-gray-900">释放文件以导入</p>
+            <p className="text-sm text-gray-500 mt-1">支持 JSON 格式的数据文件</p>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md space-y-4">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 mb-4">
@@ -92,7 +134,7 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">任务追踪</h1>
-          <p className="text-sm text-gray-500 mt-1">选择数据来源开始使用</p>
+          <p className="text-sm text-gray-500 mt-1">选择数据来源或拖入文件开始使用</p>
         </div>
 
         {/* 上传文件 */}
@@ -105,7 +147,7 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
             </div>
             <div>
               <h2 className="text-base font-semibold text-gray-900">上传文件</h2>
-              <p className="text-xs text-gray-500">从本地导入 JSON 数据文件</p>
+              <p className="text-xs text-gray-500">从本地导入或拖入 JSON 数据文件</p>
             </div>
           </div>
 
@@ -122,7 +164,7 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
             disabled={importing}
             className="w-full p-4 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition-all duration-200 disabled:opacity-50"
           >
-            {importing ? '导入中...' : '点击选择文件'}
+            {importing ? '导入中...' : '点击选择文件或拖入文件'}
           </button>
         </div>
 

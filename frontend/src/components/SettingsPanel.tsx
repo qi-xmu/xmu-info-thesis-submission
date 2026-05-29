@@ -57,6 +57,7 @@ export function SettingsPanel({
   const [importState, setImportState] = useState<'idle' | 'choose' | 'confirm'>('idle')
   const [pendingImport, setPendingImport] = useState<{ progress: ProgressMap; phases: Phase[] } | null>(null)
   const [importChoice, setImportChoice] = useState<'both' | 'progress' | 'tasks'>('both')
+  const [isDragging, setIsDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [serverUrl, setServerUrl] = useState(() => getServerUrl() || 'http://localhost:8000')
@@ -70,10 +71,7 @@ export function SettingsPanel({
 
   if (!open) return null
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const processFile = (file: File) => {
     const reader = new FileReader()
     reader.onload = (ev) => {
       try {
@@ -98,7 +96,37 @@ export function SettingsPanel({
       }
     }
     reader.readAsText(file)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    processFile(file)
     e.target.value = ''
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file && file.name.endsWith('.json')) {
+      processFile(file)
+    } else {
+      alert('请拖入 JSON 格式的数据文件')
+    }
   }
 
   const handleImportConfirm = () => {
@@ -230,10 +258,10 @@ export function SettingsPanel({
                 <button
                   key={r.value}
                   onClick={() => onRoleChange(r.value)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all duration-150 ${
                     role === r.value
                       ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
                   <div className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${
@@ -338,7 +366,7 @@ export function SettingsPanel({
             <div className="space-y-2">
               <button
                 onClick={() => exportData(progress, phases, data.site)}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-left transition-colors"
+                className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-left transition-all duration-150"
               >
                 <span className="text-gray-400 dark:text-gray-500">↗</span>
                 <div>
@@ -399,16 +427,35 @@ export function SettingsPanel({
                     </div>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => fileRef.current?.click()}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-left transition-colors"
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
                   >
-                    <span className="text-gray-400 dark:text-gray-500">↙</span>
-                    <div>
-                      <div className="text-sm font-medium text-gray-800 dark:text-white">导入数据</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">从 JSON 文件恢复任务信息和进度</div>
-                    </div>
-                  </button>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept=".json"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                    />
+                    <button
+                      onClick={() => fileRef.current?.click()}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all duration-150 ${
+                        isDragging
+                          ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/30'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                      }`}
+                    >
+                      <span className="text-gray-400 dark:text-gray-500">↙</span>
+                      <div>
+                        <div className="text-sm font-medium text-gray-800 dark:text-white">导入数据</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {isDragging ? '释放文件以导入' : '从 JSON 文件恢复或拖入文件'}
+                        </div>
+                      </div>
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -440,7 +487,7 @@ export function SettingsPanel({
             ) : (
               <button
                 onClick={handleReset}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border border-red-200 dark:border-red-700 hover:border-red-300 dark:hover:border-red-600 text-left transition-colors"
+                className="w-full flex items-center gap-3 p-3 rounded-lg border border-red-200 dark:border-red-700 hover:border-red-400 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-left transition-all duration-150"
               >
                 <span className="text-red-400 dark:text-red-500">×</span>
                 <div>
@@ -477,7 +524,7 @@ export function SettingsPanel({
               ) : (
                 <button
                   onClick={handleResetAll}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500 text-left transition-colors"
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-left transition-all duration-150"
                 >
                   <span className="text-red-500 dark:text-red-400">⚠</span>
                   <div>
