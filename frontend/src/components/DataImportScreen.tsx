@@ -165,7 +165,7 @@ export function DataImportScreen({ onImportData, onConnectServer }: DataImportSc
 
         <div className="flex flex-col md:flex-row gap-6">
           {/* 使用说明 - 宽屏左侧 */}
-          <div className="hidden md:block md:w-64 md:shrink-0">
+          <div className="hidden md:block md:w-64 md:flex-shrink-0">
             <div className="bg-white rounded-xl shadow-md p-6 space-y-4 sticky top-8">
               <h3 className="font-semibold text-gray-900 text-sm">使用说明</h3>
               <div className="p-3 bg-blue-50 rounded-xl">

@@ -177,7 +177,7 @@ export function CurrentTask({
           <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
           <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">任务转轮</h2>
         </div>
-        <div className="bg-linear-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5 text-center">
+        <div className="bg-gradient-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5 text-center">
           <div className="flex items-center justify-center gap-2">
             <svg className="w-5 h-5 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -214,7 +214,7 @@ export function CurrentTask({
               <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate">
                 {lastCompleted.title}
               </span>
-              <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full shrink-0">
+              <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full flex-shrink-0">
                 {lastCompleted.phaseTitle}
               </span>
             </div>
@@ -259,7 +259,7 @@ export function CurrentTask({
           <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
           <h2 className="font-bold text-gray-900 dark:text-white tracking-tight">任务转轮</h2>
         </div>
-        <div className="bg-linear-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5 text-center">
+        <div className="bg-gradient-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5 text-center">
           <div className="flex items-center justify-center gap-2">
             <svg className="w-5 h-5 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -297,7 +297,7 @@ export function CurrentTask({
               <span className="text-sm text-gray-400 dark:text-gray-500 line-through truncate">
                 {collapsed.title}
               </span>
-              <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full shrink-0">
+              <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full flex-shrink-0">
                 {collapsed.phaseTitle}
               </span>
             </div>

@@ -51,8 +51,8 @@ export function TaskItem({
         completed
           ? 'bg-gradient-to-r from-emerald-50 to-emerald-50/50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
           : featured
-            ? 'bg-gradient-to-r from-blue-50 to-indigo-50/50 dark:from-blue-900/30 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 shadow-sm'
-            : 'bg-gray-50/50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 hover:bg-white dark:hover:bg-gray-700 hover:shadow-sm'
+            ? 'bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-700/50 dark:to-gray-700/30 border border-gray-200 dark:border-gray-600 shadow-sm'
+            : 'bg-gray-50/50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700'
       } ${featured ? 'p-5' : 'p-4'}`}
     >
       <div className="flex items-start gap-3">

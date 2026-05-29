@@ -122,7 +122,7 @@ export function Sidebar({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => toggleExpand(phase.title)}
-                className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 shrink-0 transition-colors"
+                className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0 transition-colors"
               >
                 <svg
                   className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
@@ -145,7 +145,7 @@ export function Sidebar({
                 }`}
               >
                 <span
-                  className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+                  className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors ${
                     isSelected ? 'bg-blue-600 dark:bg-blue-400' 
                     : isCurrentPhase ? 'bg-amber-500 dark:bg-amber-400'
                     : 'bg-gray-300 dark:bg-gray-600'
@@ -180,7 +180,7 @@ export function Sidebar({
                           ? 'text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/20'
                           : progress[taskKey(task.title)]
                             ? 'text-gray-400 dark:text-gray-500 line-through hover:text-gray-500 dark:hover:text-gray-400'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50'
                       }`}
                     >
                       {task.title}
@@ -202,7 +202,7 @@ export function Sidebar({
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
           }`}
         >
-          <span className={`w-2 h-2 rounded-full shrink-0 ${
+          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
             isAllMode ? 'bg-blue-600 dark:bg-blue-400' : 'bg-gray-300 dark:bg-gray-600'
           }`} />
           <span className="font-medium">全部阶段</span>

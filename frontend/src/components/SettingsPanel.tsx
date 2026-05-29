@@ -234,7 +234,7 @@ export function SettingsPanel({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60" onClick={handleClose}>
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 shrink-0">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
           <h2 className="text-lg font-bold text-gray-800 dark:text-white">设置</h2>
           <button
             onClick={handleClose}
@@ -261,10 +261,10 @@ export function SettingsPanel({
                   className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all duration-150 ${
                     role === r.value
                       ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
-                  <div className={`w-3 h-3 rounded-full border-2 shrink-0 ${
+                  <div className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${
                     role === r.value ? 'border-blue-500 bg-blue-500' : 'border-gray-300 dark:border-gray-500'
                   }`} />
                   <div>
@@ -303,7 +303,7 @@ export function SettingsPanel({
                 <div className={`text-xs p-2 rounded ${
                   connectionStatus === 'success' ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
                   connectionStatus === 'error' ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
-                  'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                  'bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-400'
                 }`}>
                   {connectionStatus === 'testing' ? '测试中...' : connectionMessage}
                 </div>
@@ -443,8 +443,8 @@ export function SettingsPanel({
                       onClick={() => fileRef.current?.click()}
                       className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all duration-150 ${
                         isDragging
-                          ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/30'
-                          : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                          ? 'border-blue-400 bg-blue-50 dark:bg-gray-700/50'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                       }`}
                     >
                       <span className="text-gray-400 dark:text-gray-500">↙</span>

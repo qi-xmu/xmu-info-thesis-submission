@@ -251,7 +251,7 @@ export function Fireworks({ onComplete }: FireworksProps) {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-9999 pointer-events-none"
+      className="fixed inset-0 z-[9999] pointer-events-none"
     />
   )
 }
