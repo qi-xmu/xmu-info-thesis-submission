@@ -8,12 +8,14 @@ export function Sidebar({
   role,
   selectedPhaseId,
   onSelectPhase,
+  onClose,
 }: {
   phases: Phase[]
   progress: ProgressMap
   role: RoleFilter
   selectedPhaseId: number | null
   onSelectPhase: (id: number | null) => void
+  onClose?: () => void
 }) {
   const [expandedTitles, setExpandedTitles] = useState<Set<string>>(
     () => new Set(phases.map((p) => p.title))
@@ -51,15 +53,53 @@ export function Sidebar({
     if (!expandedTitles.has(phaseTitle)) {
       setExpandedTitles((prev) => new Set(prev).add(phaseTitle))
     }
+    // 滚动到该阶段的第一个任务
+    const phase = phases[phaseIdx]
+    if (phase) {
+      const firstTask = phase.tasks.find(
+        (t) => t.applies_to === 'all' || t.applies_to === role || role === 'all'
+      )
+      if (firstTask) {
+        // 延迟滚动，等待 React 重新渲染
+        setTimeout(() => {
+          const el = document.getElementById(`t-${firstTask.title}`)
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+          // 延迟关闭侧边栏，让滚动效果可见
+          setTimeout(() => onClose?.(), 300)
+        }, 300)
+      } else {
+        // 没有任务时，延迟关闭侧边栏
+        setTimeout(() => onClose?.(), 100)
+      }
+    } else {
+      onClose?.()
+    }
   }
 
   const handleTaskClick = (taskTitle: string) => {
+    // 找到该任务所属的阶段
+    for (const phase of phases) {
+      const task = phase.tasks.find((t) => t.title === taskTitle)
+      if (task) {
+        const phaseIdx = phases.indexOf(phase)
+        // 切换到该阶段
+        if (selectedPhaseId !== phaseIdx) {
+          onSelectPhase(phaseIdx)
+        }
+        break
+      }
+    }
+    
+    // 滚动到任务位置
     requestAnimationFrame(() => {
       const el = document.getElementById(`t-${taskTitle}`)
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
     })
+    onClose?.()
   }
 
   const isAllMode = selectedPhaseId === null

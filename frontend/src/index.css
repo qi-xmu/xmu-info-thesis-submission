@@ -50,13 +50,14 @@ body {
 /* Checkbox styling */
 input[type="checkbox"] {
   appearance: none;
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
   border: 1.5px solid #d1d5db;
   border-radius: 0.25rem;
   cursor: pointer;
   transition: all 0.15s ease;
   position: relative;
+  flex-shrink: 0;
 }
 
 .dark input[type="checkbox"] {
@@ -71,10 +72,10 @@ input[type="checkbox"]:checked {
 input[type="checkbox"]:checked::after {
   content: '';
   position: absolute;
-  left: 3px;
-  top: 0px;
+  left: 4px;
+  top: 1px;
   width: 5px;
-  height: 8px;
+  height: 9px;
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);

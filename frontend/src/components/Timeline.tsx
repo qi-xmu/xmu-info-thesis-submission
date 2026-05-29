@@ -31,10 +31,12 @@ export function Timeline({
   phases,
   role,
   selectedPhaseId,
+  onClose,
 }: {
   phases: Phase[]
   role: RoleFilter
   selectedPhaseId: number | null
+  onClose?: () => void
 }) {
   const filteredPhases = selectedPhaseId !== null
     ? phases.filter((_, idx) => idx === selectedPhaseId)
@@ -64,6 +66,7 @@ export function Timeline({
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
+    onClose?.()
   }
 
   if (sorted.length === 0) {

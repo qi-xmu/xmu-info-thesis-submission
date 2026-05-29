@@ -289,6 +289,7 @@ export function CurrentTask({
             <input
               type="checkbox"
               checked
+              readOnly
               onClick={() => handleUndoComplete(collapsed.title)}
               className="w-4 h-4 cursor-pointer"
             />

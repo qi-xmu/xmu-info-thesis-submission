@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useStore } from './store/useStore'
 import { Header } from './components/Header'
 import { PhaseCard } from './components/PhaseCard'
@@ -8,7 +8,10 @@ import { RoleModal } from './components/RoleModal'
 import { SettingsPanel } from './components/SettingsPanel'
 import { CurrentTask } from './components/CurrentTask'
 import { DataImportScreen } from './components/DataImportScreen'
+import { Fireworks } from './components/Fireworks'
 import type { RoleFilter } from './types'
+
+declare const __BUILD_TIME__: string
 
 const ROLE_KEY = 'task_tracker_role'
 const DARK_MODE_KEY = 'task_tracker_dark_mode'
@@ -51,6 +54,56 @@ export default function App() {
     if (saved !== null) return saved === 'true'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
+  const [showFireworks, setShowFireworks] = useState(false)
+  const [fireworksKey, setFireworksKey] = useState(0)
+  const progressRef = useRef(progress)
+  progressRef.current = progress
+
+  const triggerFireworks = useCallback(() => {
+    setFireworksKey((k) => k + 1)
+    setShowFireworks(true)
+  }, [])
+
+  const handleToggleTask = useCallback((title: string) => {
+    const wasCompleted = !!progressRef.current[title]
+    toggleTask(title)
+    if (!wasCompleted) triggerFireworks()
+  }, [toggleTask, triggerFireworks])
+
+  const handleToggleSubTask = useCallback((taskTitle: string, subTitle: string) => {
+    const key = `st:${taskTitle}:${subTitle}`
+    if (!!progressRef.current[key]) {
+      toggleSubTask(taskTitle, subTitle)
+      return
+    }
+    if (!progressRef.current[taskTitle] && data) {
+      const allSubTasksDone = data.phases
+        .flatMap((p) => p.tasks)
+        .find((t) => t.title === taskTitle)
+        ?.sub_tasks.every((st) => progressRef.current[`st:${taskTitle}:${st.title}`] || st.title === subTitle)
+      const allSubFilesDone = data.phases
+        .flatMap((p) => p.tasks)
+        .find((t) => t.title === taskTitle)
+        ?.sub_files.every((sf) => progressRef.current[`sf:${taskTitle}:${sf.name}`])
+      if (allSubTasksDone && allSubFilesDone) triggerFireworks()
+    }
+    toggleSubTask(taskTitle, subTitle)
+  }, [data, toggleSubTask, triggerFireworks])
+
+  const handleToggleSubFile = useCallback((taskTitle: string, fileName: string) => {
+    const key = `sf:${taskTitle}:${fileName}`
+    if (!!progressRef.current[key]) {
+      toggleSubFile(taskTitle, fileName)
+      return
+    }
+    if (!progressRef.current[taskTitle] && data) {
+      const task = data.phases.flatMap((p) => p.tasks).find((t) => t.title === taskTitle)
+      const allSubTasksDone = task?.sub_tasks.every((st) => progressRef.current[`st:${taskTitle}:${st.title}`])
+      const allSubFilesDone = task?.sub_files.every((sf) => progressRef.current[`sf:${taskTitle}:${sf.name}`] || sf.name === fileName)
+      if (allSubTasksDone && allSubFilesDone) triggerFireworks()
+    }
+    toggleSubFile(taskTitle, fileName)
+  }, [data, toggleSubFile, triggerFireworks])
 
   useEffect(() => {
     localStorage.setItem(DARK_MODE_KEY, String(darkMode))
@@ -70,6 +123,7 @@ export default function App() {
     setSelectedPhaseId(id)
     localStorage.setItem('task_tracker_phase', id !== null ? String(id) : '')
     setSidebarOpen(false)
+    setTimelineOpen(false)
   }
 
   if (!data) {
@@ -91,6 +145,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {role === null && <RoleModal roles={roles} onSelect={handleRoleSelect} />}
+      {showFireworks && <Fireworks key={fireworksKey} onComplete={() => setShowFireworks(false)} />}
 
       <SettingsPanel
         open={settingsOpen}
@@ -194,6 +249,7 @@ export default function App() {
             role={effectiveRole}
             selectedPhaseId={selectedPhaseId}
             onSelectPhase={handleSelectPhase}
+            onClose={() => setSidebarOpen(false)}
           />
         </aside>
 
@@ -214,9 +270,9 @@ export default function App() {
               roles={roles}
               selectedPhaseId={selectedPhaseId}
               onPhaseChange={handleSelectPhase}
-              onToggle={toggleTask}
-              onToggleSubTask={toggleSubTask}
-              onToggleSubFile={toggleSubFile}
+              onToggle={handleToggleTask}
+              onToggleSubTask={handleToggleSubTask}
+              onToggleSubFile={handleToggleSubFile}
             />
 
             <div className="space-y-4">
@@ -225,9 +281,9 @@ export default function App() {
                   key={selectedPhase.title}
                   phase={selectedPhase}
                   progress={progress}
-                  onToggle={toggleTask}
-                  onToggleSubTask={toggleSubTask}
-                  onToggleSubFile={toggleSubFile}
+                  onToggle={handleToggleTask}
+                  onToggleSubTask={handleToggleSubTask}
+                  onToggleSubFile={handleToggleSubFile}
                   role={effectiveRole}
                   roles={roles}
                   defaultExpanded
@@ -238,9 +294,9 @@ export default function App() {
                     key={phase.title}
                     phase={phase}
                     progress={progress}
-                    onToggle={toggleTask}
-                    onToggleSubTask={toggleSubTask}
-                    onToggleSubFile={toggleSubFile}
+                    onToggle={handleToggleTask}
+                    onToggleSubTask={handleToggleSubTask}
+                    onToggleSubFile={handleToggleSubFile}
                     role={effectiveRole}
                     roles={roles}
                   />
@@ -249,7 +305,8 @@ export default function App() {
             </div>
 
             <div className="mt-12 pb-8 text-center text-xs text-gray-400">
-              数据更新时间：{data.updated_at}
+              <div>数据更新时间：{data.updated_at}</div>
+              <div className="mt-1">构建时间：{__BUILD_TIME__}</div>
             </div>
           </div>
         </main>
@@ -268,7 +325,7 @@ export default function App() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <Timeline phases={data.phases} role={effectiveRole} selectedPhaseId={selectedPhaseId} />
+          <Timeline phases={data.phases} role={effectiveRole} selectedPhaseId={selectedPhaseId} onClose={() => setTimelineOpen(false)} />
         </aside>
       </div>
     </div>
