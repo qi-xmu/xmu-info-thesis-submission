@@ -1,9 +1,17 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { RoleFilter, ProgressMap, Phase, FullData, SiteInfo } from '../types'
 import { getServerUrl, testConnection } from '../api/client'
 import type { TaskChanges } from '../store/useStore'
 import { StatusMessage } from './ui/StatusMessage'
 import { ConfirmActions } from './ui/ConfirmActions'
+
+const NAV_SECTIONS = [
+  { id: 'settings-role', label: '身份设置' },
+  { id: 'settings-server', label: '服务器连接' },
+  { id: 'settings-ai', label: 'AI 配置' },
+  { id: 'settings-data', label: '数据管理' },
+  { id: 'settings-reset', label: '重置' },
+]
 
 function exportData(progress: ProgressMap, phases: Phase[], site: SiteInfo, role: RoleFilter | null) {
   const serverUrl = getServerUrl()
@@ -75,6 +83,63 @@ export function SettingsPanel({
   const [updateState, setUpdateState] = useState<'idle' | 'testing' | 'confirm' | 'success' | 'error'>('idle')
   const [pendingChanges, setPendingChanges] = useState<TaskChanges | null>(null)
   const [updateMessage, setUpdateMessage] = useState('')
+
+  // AI 配置
+  const [aiApiUrl, setAiApiUrl] = useState(() => localStorage.getItem('task_tracker_ai_url') || 'https://api.deepseek.com')
+  const [aiApiKey, setAiApiKey] = useState(() => localStorage.getItem('task_tracker_ai_key') || '')
+  const [aiModel, setAiModel] = useState(() => localStorage.getItem('task_tracker_ai_model') || 'deepseek-v4-pro')
+  const [showApiKey, setShowApiKey] = useState(false)
+  const [aiTestStatus, setAiTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
+  const [aiTestMessage, setAiTestMessage] = useState('')
+  const [aiModels, setAiModels] = useState<string[]>([])
+  const [loadingModels, setLoadingModels] = useState(false)
+  const [aiSaveStatus, setAiSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+
+  // 导航状态
+  const [activeSection, setActiveSection] = useState(NAV_SECTIONS[0].id)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const isScrollingRef = useRef(false)
+
+  // 点击导航时直接设置高亮
+  const scrollToSection = (id: string) => {
+    setActiveSection(id)
+    isScrollingRef.current = true
+    const el = document.getElementById(id)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      // 滚动结束后重置标志
+      setTimeout(() => { isScrollingRef.current = false }, 500)
+    }
+  }
+
+  // 滚动时检测当前可见 section
+  useEffect(() => {
+    if (!open) return
+
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      if (isScrollingRef.current) return
+
+      const containerTop = container.getBoundingClientRect().top
+      let current = NAV_SECTIONS[0].id
+
+      for (const section of NAV_SECTIONS) {
+        const el = document.getElementById(section.id)
+        if (!el) continue
+        const rect = el.getBoundingClientRect()
+        if (rect.top - containerTop <= 50) {
+          current = section.id
+        }
+      }
+
+      setActiveSection(current)
+    }
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [open])
 
   if (!open) return null
 
@@ -239,6 +304,63 @@ export function SettingsPanel({
     }
   }
 
+  const handleSaveAiConfig = () => {
+    localStorage.setItem('task_tracker_ai_url', aiApiUrl)
+    localStorage.setItem('task_tracker_ai_key', aiApiKey)
+    localStorage.setItem('task_tracker_ai_model', aiModel)
+    setAiSaveStatus('success')
+    setTimeout(() => setAiSaveStatus('idle'), 2000)
+  }
+
+  const fetchModels = async () => {
+    if (!aiApiUrl.trim() || !aiApiKey.trim()) return
+
+    setLoadingModels(true)
+    try {
+      const res = await fetch(`${aiApiUrl}/models`, {
+        headers: { 'Authorization': `Bearer ${aiApiKey}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const modelIds = (data.data || []).map((m: { id: string }) => m.id)
+        setAiModels(modelIds)
+        if (modelIds.length > 0 && !modelIds.includes(aiModel)) {
+          setAiModel(modelIds[0])
+        }
+      }
+    } catch {
+      // ignore
+    }
+    setLoadingModels(false)
+  }
+
+  const handleTestAiConnection = async () => {
+    if (!aiApiUrl.trim() || !aiApiKey.trim()) return
+
+    setAiTestStatus('testing')
+    try {
+      const res = await fetch(`${aiApiUrl}/models`, {
+        headers: { 'Authorization': `Bearer ${aiApiKey}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const modelIds = (data.data || []).map((m: { id: string }) => m.id)
+        setAiModels(modelIds)
+        if (modelIds.length > 0 && !modelIds.includes(aiModel)) {
+          setAiModel(modelIds[0])
+        }
+        setAiTestStatus('success')
+        setAiTestMessage(`连接成功，获取到 ${modelIds.length} 个模型`)
+      } else {
+        setAiTestStatus('error')
+        setAiTestMessage('连接失败，请检查配置')
+      }
+    } catch {
+      setAiTestStatus('error')
+      setAiTestMessage('连接失败，请检查网络')
+    }
+  }
+
   const handleClose = () => {
     onClose()
     setImportState('idle')
@@ -250,7 +372,7 @@ export function SettingsPanel({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 animate-modal-backdrop" onClick={handleClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col animate-modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md md:max-w-3xl mx-4 max-h-[85vh] flex flex-col animate-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
           <h2 className="text-lg font-bold text-gray-800 dark:text-white">设置</h2>
           <button
@@ -263,9 +385,30 @@ export function SettingsPanel({
           </button>
         </div>
 
-        <div className="p-5 space-y-6 overflow-y-auto">
+        <div className="flex flex-1 overflow-hidden">
+          {/* 左侧导航 - 宽屏显示 */}
+          <nav className="w-48 flex-shrink-0 hidden md:block border-r border-gray-100 dark:border-gray-700 p-4">
+            <div className="space-y-1 sticky top-4">
+              {NAV_SECTIONS.map(section => (
+                <button
+                  key={section.id}
+                  onClick={() => scrollToSection(section.id)}
+                  className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                    activeSection === section.id
+                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  }`}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          {/* 右侧内容 */}
+          <div ref={scrollContainerRef} className="flex-1 p-5 space-y-6 overflow-y-auto">
           {/* 身份设置 */}
-          <div>
+          <div id="settings-role" className="scroll-mt-4">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">身份设置</h3>
             <div className="space-y-2">
               {[
@@ -294,7 +437,7 @@ export function SettingsPanel({
           </div>
 
           {/* 服务器连接 */}
-          <div>
+          <div id="settings-server" className="scroll-mt-4">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">服务器连接</h3>
             <div className="space-y-3">
               <div>
@@ -369,8 +512,112 @@ export function SettingsPanel({
             </div>
           </div>
 
-          {/* 导入导出 */}
-          <div>
+          {/* AI 配置 */}
+          <div id="settings-ai" className="scroll-mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">AI 配置</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">API URL</label>
+                <input
+                  type="text"
+                  value={aiApiUrl}
+                  onChange={(e) => setAiApiUrl(e.target.value)}
+                  placeholder="https://api.deepseek.com"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">API Key</label>
+                <div className="relative">
+                  <input
+                    type={showApiKey ? 'text' : 'password'}
+                    value={aiApiKey}
+                    onChange={(e) => setAiApiKey(e.target.value)}
+                    placeholder="sk-..."
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    {showApiKey ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* 模型选择 */}
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">模型</label>
+                <div className="flex gap-2">
+                  <select
+                    value={aiModel}
+                    onChange={(e) => setAiModel(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {aiModels.length > 0 ? (
+                      aiModels.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))
+                    ) : (
+                      <option value={aiModel}>{aiModel}</option>
+                    )}
+                  </select>
+                  <button
+                    onClick={fetchModels}
+                    disabled={!aiApiUrl.trim() || !aiApiKey.trim() || loadingModels}
+                    className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+                    title="获取模型列表"
+                  >
+                    {loadingModels ? (
+                      <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {(aiTestStatus !== 'idle' || aiSaveStatus !== 'idle') && (
+                <StatusMessage
+                  status={aiSaveStatus !== 'idle' ? aiSaveStatus : aiTestStatus === 'idle' ? 'success' : aiTestStatus}
+                  message={aiSaveStatus === 'success' ? '配置已保存' : aiTestMessage}
+                />
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleTestAiConnection}
+                  disabled={!aiApiUrl.trim() || !aiApiKey.trim() || aiTestStatus === 'testing'}
+                  className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  测试连接
+                </button>
+                <button
+                  onClick={handleSaveAiConfig}
+                  className="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                >
+                  保存配置
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 数据管理 */}
+          <div id="settings-data" className="scroll-mt-4">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">数据管理</h3>
             <div className="space-y-2">
               <button
@@ -465,7 +712,7 @@ export function SettingsPanel({
           </div>
 
           {/* 重置 */}
-          <div>
+          <div id="settings-reset" className="scroll-mt-4">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">重置</h3>
             {confirming ? (
               <div className="p-3 rounded-lg border border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/30 space-y-2">
@@ -521,6 +768,10 @@ export function SettingsPanel({
                 </button>
               )}
             </div>
+          </div>
+
+          {/* 底部留白 - 使重置区域滚动到顶部时正好填满内容区 */}
+          <div style={{ minHeight: 'calc(85vh - 73px - 200px)' }} />
           </div>
         </div>
       </div>

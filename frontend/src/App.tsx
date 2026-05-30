@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { useStore } from './store/useStore'
-import { Header } from './components/Header'
+import { ProjectDetail } from './components/ProjectDetail'
+import { Shell } from './components/Shell'
 import { PhaseCard } from './components/PhaseCard'
 import { Sidebar } from './components/Sidebar'
 import { Timeline } from './components/Timeline'
 import { RoleModal } from './components/RoleModal'
-import { SettingsPanel } from './components/SettingsPanel'
 import { CurrentTask } from './components/CurrentTask'
 import { DataImportScreen } from './components/DataImportScreen'
 import { Fireworks } from './components/Fireworks'
-import { FloatingActionButton } from './components/ui/FloatingActionButton'
 import { EditPage } from './components/EditPage'
 import type { RoleFilter, FullData } from './types'
 
@@ -48,15 +48,34 @@ export default function App() {
     const saved = localStorage.getItem('task_tracker_phase')
     return saved ? Number(saved) : null
   })
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [timelineOpen, setTimelineOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
+  const [timelineOpen, setTimelineOpen] = useState(() => window.innerWidth >= 1280)
+  const sidebarManualRef = useRef(false)
+  const timelineManualRef = useRef(false)
+
+  const handleToggleSidebar = useCallback(() => {
+    sidebarManualRef.current = true
+    setSidebarOpen((v) => !v)
+  }, [])
+
+  const handleToggleTimeline = useCallback(() => {
+    timelineManualRef.current = true
+    setTimelineOpen((v) => !v)
+  }, [])
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem(DARK_MODE_KEY)
     if (saved !== null) return saved === 'true'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
-  const [markerMode, setMarkerMode] = useState(false)
+  const [currentPage, setCurrentPage] = useState<'home' | 'edit' | 'ai' | 'import'>(() => {
+    const path = window.location.pathname
+    if (path === '/edit') return 'edit'
+    if (path === '/ai') return 'ai'
+    if (path === '/import') return 'import'
+    return 'home'
+  })
+  const [editHeaderRight, setEditHeaderRight] = useState<ReactNode>(null)
   const [showFireworks, setShowFireworks] = useState(false)
   const [fireworksKey, setFireworksKey] = useState(0)
   const progressRef = useRef(progress)
@@ -117,6 +136,52 @@ export default function App() {
     }
   }, [darkMode])
 
+  // 宽度变化时自动展开/收起侧栏
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false)
+        sidebarManualRef.current = false
+      } else if (!sidebarManualRef.current) {
+        setSidebarOpen(true)
+      }
+      if (window.innerWidth < 1280) {
+        setTimelineOpen(false)
+        timelineManualRef.current = false
+      } else if (!timelineManualRef.current) {
+        setTimelineOpen(true)
+      }
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // 监听浏览器前进后退
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname
+      if (path === '/edit') setCurrentPage('edit')
+      else if (path === '/ai') setCurrentPage('ai')
+      else if (path === '/import') setCurrentPage('import')
+      else setCurrentPage('home')
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  const navigateTo = (page: 'home' | 'edit' | 'ai' | 'import') => {
+    if (page === 'edit') {
+      window.history.pushState(null, '', '/edit')
+    } else if (page === 'ai') {
+      window.history.pushState(null, '', '/ai')
+    } else if (page === 'import') {
+      window.history.pushState(null, '', '/import')
+    } else {
+      window.history.pushState(null, '', '/')
+    }
+    setCurrentPage(page)
+  }
+
   const handleRoleSelect = (r: RoleFilter) => {
     setRole(r)
     saveRole(r)
@@ -125,23 +190,48 @@ export default function App() {
   const handleSelectPhase = (id: number | null) => {
     setSelectedPhaseId(id)
     localStorage.setItem('task_tracker_phase', id !== null ? String(id) : '')
-    setSidebarOpen(false)
-    setTimelineOpen(false)
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false)
+      sidebarManualRef.current = true
+    }
+    if (window.innerWidth < 1280) {
+      setTimelineOpen(false)
+      timelineManualRef.current = true
+    }
   }
 
   const handleMarkerSave = (newData: FullData) => {
     importData(newData)
-    setMarkerMode(false)
+    navigateTo('home')
   }
 
-  if (!data) {
+  // 无数据时自动跳转到导入页面
+  useEffect(() => {
+    if (!data && currentPage !== 'import') {
+      navigateTo('import')
+    }
+  }, [data, currentPage])
+
+  // 导入页面
+  if (currentPage === 'import') {
     return (
-      <DataImportScreen
-        onImportData={importData}
-        onConnectServer={connectToServer}
-      />
+      <Shell
+        headerTitle="任务追踪"
+        isDark={darkMode}
+        onToggleDark={() => setDarkMode(!darkMode)}
+      >
+        <DataImportScreen
+          onImportData={importData}
+          onConnectServer={connectToServer}
+          hasExistingData={!!data}
+          onImportSuccess={() => navigateTo('home')}
+        />
+      </Shell>
     )
   }
+
+  // 其他页面必须有数据
+  if (!data) return null
 
   const effectiveRole: RoleFilter = role ?? 'all'
   const roles = data.site.roles
@@ -150,25 +240,28 @@ export default function App() {
     ? data.phases[selectedPhaseId] ?? null
     : null
 
-  // 如果是标记模式，显示编辑页面
-  if (markerMode) {
+  // 如果是 AI 页面，显示 AiAssistant
+  if (currentPage === 'ai') {
     return (
-      <EditPage
-        data={data}
-        onBack={() => setMarkerMode(false)}
-        onSave={handleMarkerSave}
-      />
-    )
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      {role === null && <RoleModal roles={roles} onSelect={handleRoleSelect} />}
-      {showFireworks && <Fireworks key={fireworksKey} onComplete={() => setShowFireworks(false)} />}
-
-      <SettingsPanel
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
+      <Shell
+        headerTitle="AI 助手"
+        headerSubtitle="Beta"
+        headerLeftAction={
+          <button
+            onClick={() => navigateTo('home')}
+            className="p-2 -ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        }
+        onNavigateAi={() => navigateTo('home')}
+        isDark={darkMode}
+        onToggleDark={() => setDarkMode(!darkMode)}
+        settingsOpen={settingsOpen}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onCloseSettings={() => setSettingsOpen(false)}
         role={effectiveRole}
         onRoleChange={handleRoleSelect}
         progress={progress}
@@ -181,72 +274,117 @@ export default function App() {
         onConnectServer={connectToServer}
         onDisconnectServer={disconnectServer}
         onUpdateFromServer={updateFromServer}
-      />
-
-      {/* 悬浮目录按钮 - 左上角 */}
-      <FloatingActionButton
-        onClick={() => setSidebarOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-30 p-2.5 bg-white dark:bg-gray-800"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </FloatingActionButton>
+        <div className="max-w-3xl mx-auto px-4 py-8 md:px-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/30 mb-4">
+              <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">AI 助手即将上线</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              敬请期待智能辅助功能
+            </p>
+          </div>
+        </div>
+      </Shell>
+    )
+  }
 
-      {/* 悬浮时间轴按钮 - 右上角 */}
-      <FloatingActionButton
-        onClick={() => setTimelineOpen(true)}
-        className="xl:hidden fixed top-4 right-4 z-30 p-2.5 bg-white dark:bg-gray-800"
+  // 如果是编辑页面，显示 EditPage
+  if (currentPage === 'edit') {
+    return (
+      <Shell
+        headerTitle="编辑数据"
+        headerSubtitle={`Markdown 格式`}
+        headerWide
+        headerLeftAction={
+          <button
+            onClick={() => navigateTo('home')}
+            className="p-2 -ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        }
+        headerRightContent={editHeaderRight}
+        onNavigateAi={() => navigateTo('ai')}
+        isDark={darkMode}
+        onToggleDark={() => setDarkMode(!darkMode)}
+        settingsOpen={settingsOpen}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onCloseSettings={() => setSettingsOpen(false)}
+        role={effectiveRole}
+        onRoleChange={handleRoleSelect}
+        progress={progress}
+        phases={data.phases}
+        data={data}
+        onImportProgress={importProgress}
+        onImportData={importData}
+        onReset={resetProgress}
+        onResetAll={resetAll}
+        onConnectServer={connectToServer}
+        onDisconnectServer={disconnectServer}
+        onUpdateFromServer={updateFromServer}
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </FloatingActionButton>
+        <EditPage
+          data={data}
+          onSave={handleMarkerSave}
+          isDark={darkMode}
+          onSetHeaderRight={setEditHeaderRight}
+        />
+      </Shell>
+    )
+  }
 
-      {/* 悬浮标记模式按钮 - 深色模式按钮上方 */}
-      <FloatingActionButton
-        onClick={() => setMarkerMode(!markerMode)}
-        className={`fixed bottom-30 right-5 xl:right-72 z-30 p-3 ${markerMode ? 'bg-blue-500 text-white' : 'bg-white dark:bg-gray-800'}`}
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-      </FloatingActionButton>
-
-      {/* 悬浮深色模式按钮 - 设置按钮上方 */}
-      <FloatingActionButton
-        onClick={() => setDarkMode(!darkMode)}
-        className="fixed bottom-18 right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800"
-      >
-        {darkMode ? (
+  return (
+    <Shell
+      headerTitle="任务追踪"
+      headerSubtitle={data.site.title}
+      sidebarOpen={sidebarOpen}
+      timelineOpen={timelineOpen}
+      onToggleSidebar={handleToggleSidebar}
+      onToggleTimeline={handleToggleTimeline}
+      headerRightContent={
+        <button
+          onClick={() => navigateTo('edit')}
+          className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+        >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
-        ) : (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-          </svg>
-        )}
-      </FloatingActionButton>
-
-      {/* 悬浮设置按钮 - 右下角 */}
-      <FloatingActionButton
-        onClick={() => setSettingsOpen(true)}
-        className="fixed bottom-5 right-5 xl:right-72 z-30 p-3 bg-white dark:bg-gray-800"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </FloatingActionButton>
+        </button>
+      }
+      onNavigateAi={() => navigateTo('ai')}
+      isDark={darkMode}
+      onToggleDark={() => setDarkMode(!darkMode)}
+      settingsOpen={settingsOpen}
+      onOpenSettings={() => setSettingsOpen(true)}
+      onCloseSettings={() => setSettingsOpen(false)}
+      role={effectiveRole}
+      onRoleChange={handleRoleSelect}
+      progress={progress}
+      phases={data.phases}
+      data={data}
+      onImportProgress={importProgress}
+      onImportData={importData}
+      onReset={resetProgress}
+      onResetAll={resetAll}
+      onConnectServer={connectToServer}
+      onDisconnectServer={disconnectServer}
+      onUpdateFromServer={updateFromServer}
+    >
+      {role === null && <RoleModal roles={roles} onSelect={handleRoleSelect} />}
+      {showFireworks && <Fireworks key={fireworksKey} onComplete={() => setShowFireworks(false)} />}
 
       <div className="flex">
         {/* 目录遮罩 */}
         {sidebarOpen && (
           <div
             className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => { setSidebarOpen(false); sidebarManualRef.current = true }}
           />
         )}
 
@@ -254,19 +392,21 @@ export default function App() {
         {timelineOpen && (
           <div
             className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm xl:hidden"
-            onClick={() => setTimelineOpen(false)}
+            onClick={() => { setTimelineOpen(false); timelineManualRef.current = true }}
           />
         )}
 
         {/* 左侧目录 */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-r border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 lg:shrink-0 ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-r border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:shrink-0 lg:z-auto lg:transition-[width,padding,border] ${
+            sidebarOpen
+              ? 'translate-x-0 lg:w-64 lg:border-r lg:p-5'
+              : '-translate-x-full lg:translate-x-0 lg:w-0 lg:border-r-0 lg:p-0 lg:overflow-hidden'
           }`}
         >
           <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={() => { setSidebarOpen(false); sidebarManualRef.current = true }}
+            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -278,14 +418,15 @@ export default function App() {
             role={effectiveRole}
             selectedPhaseId={selectedPhaseId}
             onSelectPhase={handleSelectPhase}
-            onClose={() => setSidebarOpen(false)}
+            onClose={() => { if (window.innerWidth < 1024) { setSidebarOpen(false); sidebarManualRef.current = true } }}
           />
         </aside>
 
         {/* 中间主内容 */}
         <main className="flex-1 min-w-0">
           <div className="max-w-3xl mx-auto px-4 py-8 md:px-8">
-            <Header
+
+            <ProjectDetail
               site={data.site}
               progress={progress}
               phases={data.phases}
@@ -342,21 +483,23 @@ export default function App() {
 
         {/* 右侧时间轴 */}
         <aside
-          className={`fixed inset-y-0 right-0 z-50 w-80 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-l border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 xl:sticky xl:top-0 xl:h-screen xl:w-72 xl:translate-x-0 xl:shrink-0 ${
-            timelineOpen ? 'translate-x-0' : 'translate-x-full'
+          className={`fixed inset-y-0 right-0 z-50 w-80 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-l border-gray-200/50 dark:border-gray-700/50 p-5 overflow-y-auto transition-transform duration-300 xl:sticky xl:top-[57px] xl:h-[calc(100vh-57px)] xl:shrink-0 xl:z-auto xl:transition-[width,padding,border] ${
+            timelineOpen
+              ? 'translate-x-0 xl:w-72 xl:border-l xl:p-5'
+              : 'translate-x-full xl:translate-x-0 xl:w-0 xl:border-l-0 xl:p-0 xl:overflow-hidden'
           }`}
         >
           <button
-            onClick={() => setTimelineOpen(false)}
-            className="xl:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={() => { setTimelineOpen(false); timelineManualRef.current = true }}
+            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <Timeline phases={data.phases} role={effectiveRole} selectedPhaseId={selectedPhaseId} onClose={() => setTimelineOpen(false)} />
+          <Timeline phases={data.phases} role={effectiveRole} selectedPhaseId={selectedPhaseId} onClose={() => { if (window.innerWidth < 1280) { setTimelineOpen(false); timelineManualRef.current = true } }} />
         </aside>
       </div>
-    </div>
+    </Shell>
   )
 }
