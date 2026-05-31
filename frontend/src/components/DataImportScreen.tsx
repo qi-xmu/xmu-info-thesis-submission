@@ -25,7 +25,7 @@ export function DataImportScreen({ onImportData, onConnectServer, onGoToAi, hasE
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    fetch('/tracker.json')
+    fetch('./tracker.json')
       .then((res) => res.json())
       .then((json) => setSiteTitle(json.site?.title || ''))
       .catch(() => {})
@@ -86,7 +86,7 @@ export function DataImportScreen({ onImportData, onConnectServer, onGoToAi, hasE
     if (hasExistingData && !window.confirm('已有数据，加载默认数据将覆盖当前任务信息。确定继续？')) return
     setImporting(true)
     try {
-      const res = await fetch('/tracker.json')
+      const res = await fetch('./tracker.json')
       if (!res.ok) throw new Error('Not found')
       const json = await res.json()
       const data: FullData = {

@@ -12,6 +12,7 @@ import { DataImportScreen } from './components/DataImportScreen'
 import { Fireworks } from './components/Fireworks'
 import { EditPage } from './components/EditPage'
 import { AiAssistant } from './components/AiAssistant'
+import { getHashPage, navigateTo } from './utils/navigation'
 import type { RoleFilter, FullData } from './types'
 
 declare const __BUILD_TIME__: string
@@ -69,13 +70,7 @@ export default function App() {
     if (saved !== null) return saved === 'true'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
-  const [currentPage, setCurrentPage] = useState<'home' | 'edit' | 'ai' | 'import'>(() => {
-    const path = window.location.pathname
-    if (path === '/edit') return 'edit'
-    if (path === '/ai') return 'ai'
-    if (path === '/import') return 'import'
-    return 'home'
-  })
+  const [currentPage, setCurrentPage] = useState<'home' | 'edit' | 'ai' | 'import'>(getHashPage)
   const [editHeaderRight, setEditHeaderRight] = useState<ReactNode>(null)
   const [editToolbarExtra, setEditToolbarExtra] = useState<any[]>([])
   const [showFireworks, setShowFireworks] = useState(false)
@@ -160,29 +155,10 @@ export default function App() {
 
   // 监听浏览器前进后退
   useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname
-      if (path === '/edit') setCurrentPage('edit')
-      else if (path === '/ai') setCurrentPage('ai')
-      else if (path === '/import') setCurrentPage('import')
-      else setCurrentPage('home')
-    }
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
+    const onHashChange = () => setCurrentPage(getHashPage())
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
-
-  const navigateTo = (page: 'home' | 'edit' | 'ai' | 'import') => {
-    if (page === 'edit') {
-      window.history.pushState(null, '', '/edit')
-    } else if (page === 'ai') {
-      window.history.pushState(null, '', '/ai')
-    } else if (page === 'import') {
-      window.history.pushState(null, '', '/import')
-    } else {
-      window.history.pushState(null, '', '/')
-    }
-    setCurrentPage(page)
-  }
 
   const handleRoleSelect = (r: RoleFilter) => {
     setRole(r)
@@ -239,6 +215,7 @@ export default function App() {
       <Shell
         headerTitle="AI 助手"
         headerSubtitle="Beta"
+        headerMaxW="max-w-6xl"
         headerLeftAction={
           <button
             onClick={() => window.history.back()}
@@ -340,17 +317,8 @@ export default function App() {
       timelineOpen={timelineOpen}
       onToggleSidebar={handleToggleSidebar}
       onToggleTimeline={handleToggleTimeline}
-      headerRightContent={
-        <button
-          onClick={() => navigateTo('edit')}
-          className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </button>
-      }
       onNavigateAi={() => navigateTo('ai')}
+      onNavigateEdit={() => navigateTo('edit')}
       isDark={darkMode}
       onToggleDark={() => setDarkMode(!darkMode)}
       settingsOpen={settingsOpen}

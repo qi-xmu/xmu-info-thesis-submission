@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { navigateTo } from '../utils/navigation'
 
 interface ResultPanelProps {
   result: string
@@ -40,7 +41,7 @@ export function ResultPanel({ result }: ResultPanelProps) {
 
   const handleEdit = () => {
     localStorage.setItem('task_tracker_ai_result_md', result)
-    window.location.href = '/edit'
+    navigateTo('edit')
   }
 
   return (
