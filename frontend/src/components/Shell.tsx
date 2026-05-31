@@ -21,11 +21,12 @@ interface ShellProps {
   onToggleTimeline?: () => void
   // Toolbar
   onNavigateAi?: () => void
+  onOpenSettings?: () => void
+  toolbarExtra?: { key: string; onClick: () => void; icon: ReactNode; className?: string }[]
   isDark: boolean
   onToggleDark: () => void
   // Settings (optional — not shown when no data)
   settingsOpen?: boolean
-  onOpenSettings?: () => void
   onCloseSettings?: () => void
   role?: RoleFilter
   onRoleChange?: (r: RoleFilter) => void
@@ -53,6 +54,7 @@ export function Shell({
   onToggleSidebar,
   onToggleTimeline,
   onNavigateAi,
+  toolbarExtra,
   isDark,
   onToggleDark,
   settingsOpen,
@@ -87,22 +89,22 @@ export function Shell({
 
       {children}
 
-      {data && settingsOpen && onCloseSettings && (
+      {settingsOpen && onCloseSettings && (
         <SettingsPanel
           open={settingsOpen}
           onClose={onCloseSettings}
-          role={role!}
-          onRoleChange={onRoleChange!}
-          progress={progress!}
-          phases={phases!}
-          data={data}
-          onImportProgress={onImportProgress!}
-          onImportData={onImportData!}
-          onReset={onReset!}
-          onResetAll={onResetAll!}
-          onConnectServer={onConnectServer!}
-          onDisconnectServer={onDisconnectServer!}
-          onUpdateFromServer={onUpdateFromServer!}
+          role={role ?? 'all'}
+          onRoleChange={onRoleChange ?? (() => {})}
+          progress={progress ?? {}}
+          phases={phases ?? []}
+          data={data ?? { site: { title: '', description: '', roles: [] }, phases: [], updated_at: '' }}
+          onImportProgress={onImportProgress ?? (() => {})}
+          onImportData={onImportData ?? (() => {})}
+          onReset={onReset ?? (() => {})}
+          onResetAll={onResetAll ?? (() => {})}
+          onConnectServer={onConnectServer ?? (async () => false)}
+          onDisconnectServer={onDisconnectServer ?? (() => {})}
+          onUpdateFromServer={onUpdateFromServer ?? (async () => ({ success: false }))}
         />
       )}
 
@@ -114,6 +116,7 @@ export function Shell({
           ...(onNavigateAi ? [{ key: 'ai', onClick: onNavigateAi, icon: AiIcon, className: 'p-3 bg-white dark:bg-gray-800 !text-blue-600 dark:!text-blue-400 hover:!text-blue-700 dark:hover:!text-blue-300' }] : []),
           ...(onOpenSettings ? [{ key: 'settings', onClick: onOpenSettings, icon: SettingsIcon }] : []),
         ]}
+        extra={toolbarExtra}
       />
     </div>
   )

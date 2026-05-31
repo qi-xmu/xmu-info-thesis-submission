@@ -1,104 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { ReactNode } from 'react'
-import CodeMirror from '@uiw/react-codemirror'
-import { markdown } from '@codemirror/lang-markdown'
-import { EditorView } from '@codemirror/view'
 import type { FullData } from '../types'
 import { jsonToMd, mdToJson } from '../utils/mdConverter'
+import { MarkdownEditor } from './ui/MarkdownEditor'
+import { StashPanel } from './ui/StashPanel'
+import { useStash, type StashItem } from '../hooks/useStash'
 
-const STASH_KEY = 'task_tracker_md_stashes'
 const MAX_STASHES = 10
-
-interface StashItem {
-  id: string
-  content: string
-  timestamp: number
-  lineCount: number
-}
-
-function loadStashes(): StashItem[] {
-  try {
-    const raw = localStorage.getItem(STASH_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
-function saveStashes(stashes: StashItem[]) {
-  localStorage.setItem(STASH_KEY, JSON.stringify(stashes))
-}
-
-const lightTheme = EditorView.theme({
-  '&': {
-    backgroundColor: '#ffffff',
-    color: '#111827',
-  },
-  '.cm-content': {
-    caretColor: '#3b82f6',
-  },
-  '.cm-activeLine': {
-    backgroundColor: '#f9fafb',
-  },
-  '.cm-selectionBackground': {
-    backgroundColor: '#dbeafe !important',
-  },
-  '&.cm-focused .cm-selectionBackground': {
-    backgroundColor: '#93c5fd !important',
-  },
-  '.cm-gutters': {
-    backgroundColor: '#f9fafb',
-    color: '#9ca3af',
-    borderRight: '1px solid #e5e7eb',
-  },
-  '.cm-activeLineGutter': {
-    backgroundColor: '#f3f4f6',
-  },
-}, { dark: false })
-
-const darkTheme = EditorView.theme({
-  '&': {
-    backgroundColor: '#1f2937',
-    color: '#f9fafb',
-  },
-  '.cm-content': {
-    caretColor: '#60a5fa',
-  },
-  '.cm-activeLine': {
-    backgroundColor: '#374151',
-  },
-  '.cm-selectionBackground': {
-    backgroundColor: '#1e3a5f !important',
-  },
-  '&.cm-focused .cm-selectionBackground': {
-    backgroundColor: '#1e40af !important',
-  },
-  '.cm-gutters': {
-    backgroundColor: '#111827',
-    color: '#6b7280',
-    borderRight: '1px solid #374151',
-  },
-  '.cm-activeLineGutter': {
-    backgroundColor: '#1f2937',
-  },
-}, { dark: true })
-
-const baseTheme = EditorView.theme({
-  '&': {
-    fontSize: '0.875rem',
-    fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", Menlo, Monaco, Consolas, monospace',
-  },
-  '.cm-line': {
-    padding: '0 4px',
-    lineHeight: '1.7',
-  },
-  '.cm-content': {
-    padding: '16px 0',
-  },
-  '.cm-gutters': {
-    padding: '0 8px',
-  },
-})
 
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp)
@@ -114,19 +22,45 @@ export function EditPage({
   onSave,
   isDark,
   onSetHeaderRight,
+  onSetToolbarExtra,
 }: {
-  data: FullData
+  data?: FullData | null
   onSave: (data: FullData) => void
   isDark: boolean
   onSetHeaderRight?: (node: ReactNode) => void
+  onSetToolbarExtra?: (extras: { key: string; onClick: () => void; icon: ReactNode }[]) => void
 }) {
-  const [mdContent, setMdContent] = useState(() => jsonToMd(data))
+  const { items: stashes, activeId: activeStashId, setActiveId: setActiveStashId, add: addStash, remove: removeStash, clear: clearStashes } = useStash({ key: 'task_tracker_md_stashes' })
+  const fromAi = useRef(false)
+  const [mdContent, setMdContent] = useState(() => {
+    const aiResult = localStorage.getItem('task_tracker_ai_result_md')
+    if (aiResult) {
+      localStorage.removeItem('task_tracker_ai_result_md')
+      fromAi.current = true
+      return aiResult
+    }
+    return data ? jsonToMd(data) : ''
+  })
   const [error, setError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [stashes, setStashes] = useState<StashItem[]>(loadStashes)
-  const [activeStashId, setActiveStashId] = useState<string | null>(null)
   const [showStashPanel, setShowStashPanel] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
   const mdContentRef = useRef(mdContent)
+  // 监听桌面端宽度变化
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= 1024)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // 从 AI 跳转时自动暂存并标记（仅一次）
+  const aiStashedRef = useRef(false)
+  useEffect(() => {
+    if (fromAi.current && mdContent && !aiStashedRef.current) {
+      aiStashedRef.current = true
+      addStash(mdContent, 'AI 生成')
+    }
+  }, [mdContent, addStash])
 
   // 保持 ref 与 state 同步
   useEffect(() => {
@@ -134,18 +68,8 @@ export function EditPage({
   }, [mdContent])
 
   const handleStash = useCallback(() => {
-    const content = mdContentRef.current
-    const newStash: StashItem = {
-      id: Date.now().toString(),
-      content,
-      timestamp: Date.now(),
-      lineCount: content.split('\n').length,
-    }
-    const updated = [newStash, ...stashes].slice(0, MAX_STASHES)
-    setStashes(updated)
-    saveStashes(updated)
-    setActiveStashId(newStash.id)
-  }, [stashes])
+    addStash(mdContentRef.current)
+  }, [addStash])
 
   // Cmd/Ctrl+S 自动暂存
   useEffect(() => {
@@ -165,40 +89,38 @@ export function EditPage({
     setShowStashPanel(false)
   }
 
-  const handleDelete = (id: string) => {
-    const updated = stashes.filter(s => s.id !== id)
-    setStashes(updated)
-    saveStashes(updated)
-    if (activeStashId === id) setActiveStashId(null)
-  }
+  const handleDelete = (id: string) => removeStash(id)
+  const handleClearAll = () => clearStashes()
 
-  const handleClearAll = () => {
-    setStashes([])
-    saveStashes([])
-    setActiveStashId(null)
-  }
-
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     setIsSaving(true)
     setError(null)
 
     try {
-      const parsed = mdToJson(mdContent)
+      const parsed = mdToJson(mdContentRef.current)
       onSave(parsed)
     } catch (e) {
       setError(`解析失败: ${e instanceof Error ? e.message : '未知错误'}`)
       setIsSaving(false)
     }
-  }
+  }, [onSave])
 
-  const handleReset = () => {
-    setMdContent(jsonToMd(data))
+  const handleReset = useCallback(() => {
+    if (data) {
+      setMdContent(jsonToMd(data))
+    } else {
+      setMdContent('')
+    }
     setError(null)
     setActiveStashId(null)
-  }
+  }, [data])
 
   // 向父组件提供 header 右侧按钮
+  const headerCallbacksRef = useRef({ handleStash, handleReset, handleSave })
+  headerCallbacksRef.current = { handleStash, handleReset, handleSave }
+
   useEffect(() => {
+    const { handleStash, handleReset, handleSave } = headerCallbacksRef.current
     onSetHeaderRight?.(
       <div className="flex items-center gap-1 md:gap-2">
         <button
@@ -222,12 +144,35 @@ export function EditPage({
         </button>
       </div>
     )
-  }, [mdContent, isSaving, onSetHeaderRight, handleStash, handleReset, handleSave])
+  }, [isSaving, onSetHeaderRight])
 
   // Cleanup on unmount
   useEffect(() => {
     return () => onSetHeaderRight?.(null)
   }, [onSetHeaderRight])
+
+  // 向工具栏注入暂存列表按钮（仅在桌面侧栏不可见时）
+  useEffect(() => {
+    if (!isDesktop) {
+      onSetToolbarExtra?.([{
+        key: 'stash-list',
+        onClick: () => setShowStashPanel(true),
+        icon: (
+          <div className="relative">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            {stashes.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[10px] rounded-full flex items-center justify-center">{stashes.length}</span>
+            )}
+          </div>
+        ),
+      }])
+    } else {
+      onSetToolbarExtra?.([])
+    }
+    return () => onSetToolbarExtra?.([])
+  }, [stashes.length, isDesktop, onSetToolbarExtra])
 
   const StashListContent = () => (
     <>
@@ -240,11 +185,11 @@ export function EditPage({
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">点击「暂存」保存当前内容</p>
         </div>
       ) : (
-        <div className="py-1">
+        <div className="divide-y divide-gray-100 dark:divide-gray-700">
           {stashes.map((stash) => (
             <div
               key={stash.id}
-              className={`group px-4 py-2.5 flex items-start gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+              className={`group px-5 py-3 flex items-start gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
                 activeStashId === stash.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
               }`}
               onClick={() => handleRestore(stash)}
@@ -261,9 +206,14 @@ export function EditPage({
                   <span className="text-xs text-gray-400 dark:text-gray-500">
                     {stash.lineCount} 行
                   </span>
+                  {stash.label && (
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
+                      {stash.label}
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-                  {stash.content.split('\n')[0].slice(0, 30) || '（空内容）'}
+                  {stash.content.split('\n')[0].slice(0, 40) || '（空内容）'}
                 </p>
               </div>
               <button
@@ -312,20 +262,11 @@ export function EditPage({
               <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">tracker.md</span>
             </div>
             <div className="h-[calc(100vh-130px)] overflow-auto">
-              <CodeMirror
+              <MarkdownEditor
                 value={mdContent}
                 onChange={setMdContent}
-                extensions={[markdown(), baseTheme, EditorView.lineWrapping]}
-                theme={isDark ? darkTheme : lightTheme}
-                basicSetup={{
-                  lineNumbers: true,
-                  highlightActiveLine: true,
-                  highlightActiveLineGutter: true,
-                  foldGutter: false,
-                  bracketMatching: true,
-                  autocompletion: false,
-                }}
-                style={{ height: '100%' }}
+                isDark={isDark}
+                height="100%"
               />
             </div>
           </div>
@@ -352,54 +293,16 @@ export function EditPage({
         </div>
       </div>
 
-      {/* Floating stash button - mobile */}
-      <button
-        onClick={() => setShowStashPanel(true)}
-        className="lg:hidden fixed bottom-5 right-5 z-30 w-12 h-12 bg-white dark:bg-gray-800 shadow-lg rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:shadow-xl transition-all duration-200"
-        title="暂存列表"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-        </svg>
-        {stashes.length > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
-            {stashes.length}
-          </span>
-        )}
-      </button>
-
-      {/* Stash panel overlay - mobile */}
-      {showStashPanel && (
-        <div className="lg:hidden fixed inset-0 z-50 flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowStashPanel(false)} />
-          <div className="relative bg-white dark:bg-gray-800 rounded-t-2xl shadow-xl w-full max-h-[70vh] flex flex-col">
-            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">暂存列表</h3>
-              <div className="flex items-center gap-2">
-                {stashes.length > 0 && (
-                  <button
-                    onClick={handleClearAll}
-                    className="text-xs text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                  >
-                    清空
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowStashPanel(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <StashListContent />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Stash panel overlay */}
+      <StashPanel
+        open={showStashPanel}
+        onClose={() => setShowStashPanel(false)}
+        items={stashes}
+        activeId={activeStashId}
+        onRestore={(item) => { setMdContent(item.content); setActiveStashId(item.id); setShowStashPanel(false) }}
+        onDelete={handleDelete}
+        onClear={handleClearAll}
+      />
     </>
   )
 }

@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react'
 import type { FullData } from '../types'
 import { testConnection, getServerUrl } from '../api/client'
@@ -8,11 +9,12 @@ import { HelpInstructions } from './ui/HelpInstructions'
 interface DataImportScreenProps {
   onImportData: (data: FullData) => void
   onConnectServer: (url: string) => Promise<boolean>
+  onGoToAi?: () => void
   hasExistingData?: boolean
   onImportSuccess?: () => void
 }
 
-export function DataImportScreen({ onImportData, onConnectServer, hasExistingData, onImportSuccess }: DataImportScreenProps) {
+export function DataImportScreen({ onImportData, onConnectServer, onGoToAi, hasExistingData, onImportSuccess }: DataImportScreenProps) {
   const [serverUrl, setServerUrl] = useState(() => getServerUrl() || 'http://localhost:8000')
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [connectionMessage, setConnectionMessage] = useState('')
@@ -185,96 +187,106 @@ export function DataImportScreen({ onImportData, onConnectServer, hasExistingDat
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* 使用说明 - 宽屏左侧 */}
-          <div className="hidden md:block md:w-64 md:flex-shrink-0">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 space-y-4 sticky top-8">
-              <h3 className="font-semibold text-gray-900 dark:text-white text-sm">使用说明</h3>
-              <HelpInstructions />
-            </div>
-          </div>
-
           {/* 选项卡片 */}
-          <div className="w-full flex-1 space-y-4 max-w-md mx-auto md:mx-0">
-            {/* 使用默认数据 */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-              <CardHeader
-                icon={<svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-3-3v6" /></svg>}
-                title="使用默认数据"
-                description={siteTitle || '加载内置的 tracker.json 数据'}
-              />
-              <button
-                onClick={handleLoadDefault}
-                disabled={importing}
-                className="w-full p-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
-              >
-                加载默认数据
-              </button>
-            </div>
+          <div className="w-full flex-1 max-w-md md:max-w-none mx-auto md:mx-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 左侧：使用默认数据 */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                <CardHeader
+                  icon={<svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-3-3v6" /></svg>}
+                  title="使用默认数据"
+                  description={siteTitle || '加载内置的 tracker.json 数据'}
+                />
+                <button
+                  onClick={handleLoadDefault}
+                  disabled={importing}
+                  className="w-full p-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                >
+                  加载默认数据
+                </button>
+              </div>
 
-            {/* 上传文件 */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-              <CardHeader
-                icon={<svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
-                title="上传文件"
-                description="从本地导入或拖入 JSON 数据文件"
-              />
+              {/* 左侧：AI 生成 */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                <CardHeader
+                  icon={<svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>}
+                  title="AI 生成"
+                  description="使用 AI 根据通知内容生成任务数据"
+                />
+                <button
+                  onClick={onGoToAi}
+                  disabled={importing}
+                  className="w-full p-3 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-400 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                >
+                  使用 AI 生成
+                </button>
+              </div>
 
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-
-              <button
-                onClick={() => fileRef.current?.click()}
-                disabled={importing}
-                className="w-full p-4 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all duration-200 disabled:opacity-50"
-              >
-                {importing ? '导入中...' : '点击选择文件或拖入文件'}
-              </button>
-            </div>
-
-            {/* 连接后端 */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-              <CardHeader
-                icon={<svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>}
-                title="连接后端"
-                description="输入服务器地址获取数据"
-              />
-
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={serverUrl}
-                  onChange={(e) => setServerUrl(e.target.value)}
-                  placeholder="http://localhost:8000"
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              {/* 右侧：上传文件 */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                <CardHeader
+                  icon={<svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
+                  title="上传文件"
+                  description="从本地导入或拖入 JSON 数据文件"
                 />
 
-                {connectionStatus !== 'idle' && (
-                  <StatusMessage
-                    status={connectionStatus}
-                    message={connectionStatus === 'testing' ? '测试中...' : connectionMessage}
-                  />
-                )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".json"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleTestConnection}
-                    disabled={!serverUrl.trim() || connectionStatus === 'testing'}
-                    className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-all duration-200 disabled:opacity-50"
-                  >
-                    测试连接
-                  </button>
-                  <button
-                    onClick={handleConnect}
-                    disabled={!serverUrl.trim() || connectionStatus === 'testing'}
-                    className="flex-1 px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 disabled:opacity-50"
-                  >
-                    保存并连接
-                  </button>
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={importing}
+                  className="w-full p-4 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all duration-200 disabled:opacity-50"
+                >
+                  {importing ? '导入中...' : '点击选择文件或拖入文件'}
+                </button>
+              </div>
+
+              {/* 右侧：连接后端 */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                <CardHeader
+                  icon={<svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>}
+                  title="连接后端"
+                  description="输入服务器地址获取数据"
+                />
+
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={serverUrl}
+                    onChange={(e) => setServerUrl(e.target.value)}
+                    placeholder="http://localhost:8000"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  />
+
+                  {connectionStatus !== 'idle' && (
+                    <StatusMessage
+                      status={connectionStatus}
+                      message={connectionStatus === 'testing' ? '测试中...' : connectionMessage}
+                    />
+                  )}
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleTestConnection}
+                      disabled={!serverUrl.trim() || connectionStatus === 'testing'}
+                      className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-all duration-200 disabled:opacity-50"
+                    >
+                      测试
+                    </button>
+                    <button
+                      onClick={handleConnect}
+                      disabled={!serverUrl.trim() || connectionStatus === 'testing'}
+                      className="flex-1 px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 disabled:opacity-50"
+                    >
+                      保存
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

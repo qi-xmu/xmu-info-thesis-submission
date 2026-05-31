@@ -4,12 +4,15 @@ import { getServerUrl, testConnection } from '../api/client'
 import type { TaskChanges } from '../store/useStore'
 import { StatusMessage } from './ui/StatusMessage'
 import { ConfirmActions } from './ui/ConfirmActions'
+import { MarkdownEditor } from './ui/MarkdownEditor'
+import { DEFAULT_SYSTEM_PROMPT } from '../prompts/default'
 
 const NAV_SECTIONS = [
   { id: 'settings-role', label: '身份设置' },
   { id: 'settings-server', label: '服务器连接' },
-  { id: 'settings-ai', label: 'AI 配置' },
   { id: 'settings-data', label: '数据管理' },
+  { id: 'settings-ai', label: 'AI 配置' },
+  { id: 'settings-prompt', label: 'AI 提示词' },
   { id: 'settings-reset', label: '重置' },
 ]
 
@@ -87,13 +90,29 @@ export function SettingsPanel({
   // AI 配置
   const [aiApiUrl, setAiApiUrl] = useState(() => localStorage.getItem('task_tracker_ai_url') || 'https://api.deepseek.com')
   const [aiApiKey, setAiApiKey] = useState(() => localStorage.getItem('task_tracker_ai_key') || '')
-  const [aiModel, setAiModel] = useState(() => localStorage.getItem('task_tracker_ai_model') || 'deepseek-v4-pro')
+  const [aiModel, setAiModel] = useState(() => localStorage.getItem('task_tracker_ai_model') || 'deepseek-chat')
+  const [aiReasoning, setAiReasoning] = useState(() => localStorage.getItem('task_tracker_ai_reasoning') !== 'false')
   const [showApiKey, setShowApiKey] = useState(false)
   const [aiTestStatus, setAiTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [aiTestMessage, setAiTestMessage] = useState('')
   const [aiModels, setAiModels] = useState<string[]>([])
   const [loadingModels, setLoadingModels] = useState(false)
   const [aiSaveStatus, setAiSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [isDark] = useState(() => document.documentElement.classList.contains('dark'))
+
+  // AI 提示词
+  const [aiPrompt, setAiPrompt] = useState(() => localStorage.getItem('task_tracker_ai_prompt') || DEFAULT_SYSTEM_PROMPT)
+  const [promptSaveStatus, setPromptSaveStatus] = useState<'idle' | 'success'>('idle')
+
+  const handleSavePrompt = () => {
+    localStorage.setItem('task_tracker_ai_prompt', aiPrompt)
+    setPromptSaveStatus('success')
+    setTimeout(() => setPromptSaveStatus('idle'), 2000)
+  }
+
+  const handleResetPrompt = () => {
+    setAiPrompt(DEFAULT_SYSTEM_PROMPT)
+  }
 
   // 导航状态
   const [activeSection, setActiveSection] = useState(NAV_SECTIONS[0].id)
@@ -308,6 +327,7 @@ export function SettingsPanel({
     localStorage.setItem('task_tracker_ai_url', aiApiUrl)
     localStorage.setItem('task_tracker_ai_key', aiApiKey)
     localStorage.setItem('task_tracker_ai_model', aiModel)
+    localStorage.setItem('task_tracker_ai_reasoning', String(aiReasoning))
     setAiSaveStatus('success')
     setTimeout(() => setAiSaveStatus('idle'), 2000)
   }
@@ -512,110 +532,6 @@ export function SettingsPanel({
             </div>
           </div>
 
-          {/* AI 配置 */}
-          <div id="settings-ai" className="scroll-mt-4">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">AI 配置</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">API URL</label>
-                <input
-                  type="text"
-                  value={aiApiUrl}
-                  onChange={(e) => setAiApiUrl(e.target.value)}
-                  placeholder="https://api.deepseek.com"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">API Key</label>
-                <div className="relative">
-                  <input
-                    type={showApiKey ? 'text' : 'password'}
-                    value={aiApiKey}
-                    onChange={(e) => setAiApiKey(e.target.value)}
-                    placeholder="sk-..."
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    {showApiKey ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* 模型选择 */}
-              <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">模型</label>
-                <div className="flex gap-2">
-                  <select
-                    value={aiModel}
-                    onChange={(e) => setAiModel(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {aiModels.length > 0 ? (
-                      aiModels.map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))
-                    ) : (
-                      <option value={aiModel}>{aiModel}</option>
-                    )}
-                  </select>
-                  <button
-                    onClick={fetchModels}
-                    disabled={!aiApiUrl.trim() || !aiApiKey.trim() || loadingModels}
-                    className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
-                    title="获取模型列表"
-                  >
-                    {loadingModels ? (
-                      <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {(aiTestStatus !== 'idle' || aiSaveStatus !== 'idle') && (
-                <StatusMessage
-                  status={aiSaveStatus !== 'idle' ? aiSaveStatus : aiTestStatus === 'idle' ? 'success' : aiTestStatus}
-                  message={aiSaveStatus === 'success' ? '配置已保存' : aiTestMessage}
-                />
-              )}
-
-              <div className="flex gap-2">
-                <button
-                  onClick={handleTestAiConnection}
-                  disabled={!aiApiUrl.trim() || !aiApiKey.trim() || aiTestStatus === 'testing'}
-                  className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  测试连接
-                </button>
-                <button
-                  onClick={handleSaveAiConfig}
-                  className="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
-                >
-                  保存配置
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* 数据管理 */}
           <div id="settings-data" className="scroll-mt-4">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">数据管理</h3>
@@ -706,6 +622,162 @@ export function SettingsPanel({
                       </div>
                     </button>
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* AI 配置 */}
+          <div id="settings-ai" className="scroll-mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">AI 配置</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">API URL</label>
+                <input
+                  type="text"
+                  value={aiApiUrl}
+                  onChange={(e) => setAiApiUrl(e.target.value)}
+                  placeholder="https://api.deepseek.com"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">API Key</label>
+                <div className="relative">
+                  <input
+                    type={showApiKey ? 'text' : 'password'}
+                    value={aiApiKey}
+                    onChange={(e) => setAiApiKey(e.target.value)}
+                    placeholder="sk-..."
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    {showApiKey ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* 模型选择 */}
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">模型</label>
+                <div className="flex gap-2">
+                  <select
+                    value={aiModel}
+                    onChange={(e) => setAiModel(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {aiModels.length > 0 ? (
+                      aiModels.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))
+                    ) : (
+                      <option value={aiModel}>{aiModel}</option>
+                    )}
+                  </select>
+                  <button
+                    onClick={fetchModels}
+                    disabled={!aiApiUrl.trim() || !aiApiKey.trim() || loadingModels}
+                    className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+                    title="获取模型列表"
+                  >
+                    {loadingModels ? (
+                      <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* 深度思考 */}
+              <label className="flex items-center justify-between py-2 px-1 cursor-pointer">
+                <div>
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300">深度思考模式</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">AI 将在回答前进行推理分析</div>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={aiReasoning}
+                  onClick={() => setAiReasoning(!aiReasoning)}
+                  className={`relative w-10 h-5 rounded-full transition-colors ${aiReasoning ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${aiReasoning ? 'translate-x-5' : ''}`} />
+                </button>
+              </label>
+
+              {(aiTestStatus !== 'idle' || aiSaveStatus !== 'idle') && (
+                <StatusMessage
+                  status={aiSaveStatus !== 'idle' ? aiSaveStatus : aiTestStatus === 'idle' ? 'success' : aiTestStatus}
+                  message={aiSaveStatus === 'success' ? '配置已保存' : aiTestMessage}
+                />
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleTestAiConnection}
+                  disabled={!aiApiUrl.trim() || !aiApiKey.trim() || aiTestStatus === 'testing'}
+                  className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  测试连接
+                </button>
+                <button
+                  onClick={handleSaveAiConfig}
+                  className="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                >
+                  保存配置
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* AI 提示词 */}
+          <div id="settings-prompt" className="scroll-mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">AI 提示词</h3>
+            <div className="space-y-3">
+              <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 dark:bg-gray-700/50 px-3 py-2 border-b border-gray-200 dark:border-gray-600 flex items-center justify-between">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">system prompt.md</span>
+                  <button
+                    onClick={handleResetPrompt}
+                    className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    重置默认
+                  </button>
+                </div>
+                <MarkdownEditor
+                  value={aiPrompt}
+                  onChange={setAiPrompt}
+                  isDark={isDark}
+                  height="200px"
+                  fontSize="0.8125rem"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSavePrompt}
+                  className="flex-1 px-3 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                >
+                  保存提示词
+                </button>
+                {promptSaveStatus === 'success' && (
+                  <StatusMessage status="success" message="已保存" />
                 )}
               </div>
             </div>

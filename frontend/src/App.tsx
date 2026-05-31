@@ -11,6 +11,7 @@ import { CurrentTask } from './components/CurrentTask'
 import { DataImportScreen } from './components/DataImportScreen'
 import { Fireworks } from './components/Fireworks'
 import { EditPage } from './components/EditPage'
+import { AiAssistant } from './components/AiAssistant'
 import type { RoleFilter, FullData } from './types'
 
 declare const __BUILD_TIME__: string
@@ -76,6 +77,7 @@ export default function App() {
     return 'home'
   })
   const [editHeaderRight, setEditHeaderRight] = useState<ReactNode>(null)
+  const [editToolbarExtra, setEditToolbarExtra] = useState<any[]>([])
   const [showFireworks, setShowFireworks] = useState(false)
   const [fireworksKey, setFireworksKey] = useState(0)
   const progressRef = useRef(progress)
@@ -207,7 +209,7 @@ export default function App() {
 
   // 无数据时自动跳转到导入页面
   useEffect(() => {
-    if (!data && currentPage !== 'import') {
+    if (!data && currentPage === 'home') {
       navigateTo('import')
     }
   }, [data, currentPage])
@@ -223,8 +225,98 @@ export default function App() {
         <DataImportScreen
           onImportData={importData}
           onConnectServer={connectToServer}
+          onGoToAi={() => navigateTo('ai')}
           hasExistingData={!!data}
           onImportSuccess={() => navigateTo('home')}
+        />
+      </Shell>
+    )
+  }
+
+  // AI 页面无需数据
+  if (currentPage === 'ai') {
+    return (
+      <Shell
+        headerTitle="AI 助手"
+        headerSubtitle="Beta"
+        headerLeftAction={
+          <button
+            onClick={() => window.history.back()}
+            className="p-2 -ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        }
+
+        isDark={darkMode}
+        onToggleDark={() => setDarkMode(!darkMode)}
+        settingsOpen={settingsOpen}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onCloseSettings={() => setSettingsOpen(false)}
+        role={role ?? 'all'}
+        onRoleChange={handleRoleSelect}
+        progress={progress}
+        phases={data?.phases || []}
+        data={data}
+        onImportProgress={importProgress}
+        onImportData={importData}
+        onReset={resetProgress}
+        onResetAll={resetAll}
+        onConnectServer={connectToServer}
+        onDisconnectServer={disconnectServer}
+        onUpdateFromServer={updateFromServer}
+      >
+        <AiAssistant />
+      </Shell>
+    )
+  }
+
+  // 编辑页面（允许无数据时从 AI 结果进入）
+  if (currentPage === 'edit') {
+    return (
+      <Shell
+        headerTitle="编辑数据"
+        headerSubtitle="Markdown 格式"
+        headerWide
+        headerLeftAction={
+          <button
+            onClick={() => window.history.back()}
+            className="p-2 -ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        }
+        headerRightContent={editHeaderRight}
+        toolbarExtra={editToolbarExtra}
+        onNavigateAi={() => navigateTo('ai')}
+        isDark={darkMode}
+        onToggleDark={() => setDarkMode(!darkMode)}
+        settingsOpen={settingsOpen}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onCloseSettings={() => setSettingsOpen(false)}
+        role={role ?? 'all'}
+        onRoleChange={handleRoleSelect}
+        progress={progress}
+        phases={data?.phases || []}
+        data={data}
+        onImportProgress={importProgress}
+        onImportData={importData}
+        onReset={resetProgress}
+        onResetAll={resetAll}
+        onConnectServer={connectToServer}
+        onDisconnectServer={disconnectServer}
+        onUpdateFromServer={updateFromServer}
+      >
+        <EditPage
+          data={data!}
+          onSave={handleMarkerSave}
+          isDark={darkMode}
+          onSetHeaderRight={setEditHeaderRight}
+          onSetToolbarExtra={setEditToolbarExtra}
         />
       </Shell>
     )
@@ -239,105 +331,6 @@ export default function App() {
   const selectedPhase = selectedPhaseId !== null
     ? data.phases[selectedPhaseId] ?? null
     : null
-
-  // 如果是 AI 页面，显示 AiAssistant
-  if (currentPage === 'ai') {
-    return (
-      <Shell
-        headerTitle="AI 助手"
-        headerSubtitle="Beta"
-        headerLeftAction={
-          <button
-            onClick={() => navigateTo('home')}
-            className="p-2 -ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-        }
-        onNavigateAi={() => navigateTo('home')}
-        isDark={darkMode}
-        onToggleDark={() => setDarkMode(!darkMode)}
-        settingsOpen={settingsOpen}
-        onOpenSettings={() => setSettingsOpen(true)}
-        onCloseSettings={() => setSettingsOpen(false)}
-        role={effectiveRole}
-        onRoleChange={handleRoleSelect}
-        progress={progress}
-        phases={data.phases}
-        data={data}
-        onImportProgress={importProgress}
-        onImportData={importData}
-        onReset={resetProgress}
-        onResetAll={resetAll}
-        onConnectServer={connectToServer}
-        onDisconnectServer={disconnectServer}
-        onUpdateFromServer={updateFromServer}
-      >
-        <div className="max-w-3xl mx-auto px-4 py-8 md:px-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/30 mb-4">
-              <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-              </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">AI 助手即将上线</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              敬请期待智能辅助功能
-            </p>
-          </div>
-        </div>
-      </Shell>
-    )
-  }
-
-  // 如果是编辑页面，显示 EditPage
-  if (currentPage === 'edit') {
-    return (
-      <Shell
-        headerTitle="编辑数据"
-        headerSubtitle={`Markdown 格式`}
-        headerWide
-        headerLeftAction={
-          <button
-            onClick={() => navigateTo('home')}
-            className="p-2 -ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-        }
-        headerRightContent={editHeaderRight}
-        onNavigateAi={() => navigateTo('ai')}
-        isDark={darkMode}
-        onToggleDark={() => setDarkMode(!darkMode)}
-        settingsOpen={settingsOpen}
-        onOpenSettings={() => setSettingsOpen(true)}
-        onCloseSettings={() => setSettingsOpen(false)}
-        role={effectiveRole}
-        onRoleChange={handleRoleSelect}
-        progress={progress}
-        phases={data.phases}
-        data={data}
-        onImportProgress={importProgress}
-        onImportData={importData}
-        onReset={resetProgress}
-        onResetAll={resetAll}
-        onConnectServer={connectToServer}
-        onDisconnectServer={disconnectServer}
-        onUpdateFromServer={updateFromServer}
-      >
-        <EditPage
-          data={data}
-          onSave={handleMarkerSave}
-          isDark={darkMode}
-          onSetHeaderRight={setEditHeaderRight}
-        />
-      </Shell>
-    )
-  }
 
   return (
     <Shell

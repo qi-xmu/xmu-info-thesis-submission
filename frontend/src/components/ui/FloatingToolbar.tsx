@@ -21,6 +21,7 @@ export function FloatingToolbar({ buttons, isDark, onToggleDark, timelineOpen, e
   const rightClass = timelineOpen ? 'xl:right-[308px]' : ''
 
   const allButtons = [
+    ...(extra ?? []),
     ...buttons,
     {
       key: 'dark',
@@ -36,7 +37,6 @@ export function FloatingToolbar({ buttons, isDark, onToggleDark, timelineOpen, e
       ),
       className: 'p-3 bg-white dark:bg-gray-800',
     },
-    ...(extra ?? []),
   ]
 
   return (

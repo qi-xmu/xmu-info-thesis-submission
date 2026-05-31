@@ -4,20 +4,25 @@ interface HelpInstructionsProps {
 
 export function HelpInstructions({ className = '' }: HelpInstructionsProps) {
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-3 ${className}`}>
       <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
-        <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-1 text-xs">1. 获取任务数据</h4>
-        <p className="text-xs text-gray-600 dark:text-gray-400">通过上传 JSON 文件或连接后端服务器获取任务数据。</p>
+        <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-1 text-xs">1. 加载默认数据</h4>
+        <p className="text-xs text-gray-600 dark:text-gray-400">直接加载内置的 tracker.json 数据开始使用。</p>
       </div>
 
-      <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl">
-        <h4 className="font-medium text-emerald-800 dark:text-emerald-300 mb-1 text-xs">2. 追踪任务进度</h4>
-        <p className="text-xs text-gray-600 dark:text-gray-400">勾选复选框标记完成状态，进度自动保存到浏览器。</p>
+      <div className="p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl">
+        <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-1 text-xs">2. AI 生成</h4>
+        <p className="text-xs text-gray-600 dark:text-gray-400">使用 AI 根据通知内容自动生成任务数据。</p>
       </div>
 
-      <div className="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-xl">
-        <h4 className="font-medium text-amber-800 dark:text-amber-300 mb-1 text-xs">3. 导出与备份</h4>
-        <p className="text-xs text-gray-600 dark:text-gray-400">点击设置按钮导出进度为 JSON 文件。</p>
+      <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+        <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-1 text-xs">3. 上传文件</h4>
+        <p className="text-xs text-gray-600 dark:text-gray-400">从本地导入 JSON 数据文件或拖入文件。</p>
+      </div>
+
+      <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+        <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-1 text-xs">4. 连接后端</h4>
+        <p className="text-xs text-gray-600 dark:text-gray-400">输入服务器地址从后端获取数据。</p>
       </div>
     </div>
   )
