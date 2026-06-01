@@ -1,7 +1,7 @@
 {
   "site": {
     "title": "厦门大学信息学院 研究生毕业论文流程跟踪",
-    "description": "来源：[信息学院（国家示范性软件学院）](https://informatics.xmu.edu.cn/)。详细流程说明见[原文链接](https://informatics.xmu.edu.cn/info/2301/178021.htm)。\n\n**研究生秘书联系方式**：\n- **郑老师** 2580019; hgzheng@xmu.edu.cn：负责博士及学术型硕士\n- **麻老师** 2580599; malinjian@xmu.edu.cn：负责通信系、智能系专业学位硕士\n- **陈老师** 2580025；cyq1015@xmu.edu.cn：负责计算机系、软工系专业学位硕士、国际硕士",
+    "description": "来源：[信息学院（国家示范性软件学院）](https://informatics.xmu.edu.cn/)。详细流程说明见[原文链接](https://informatics.xmu.edu.cn/info/2301/178021.htm)。\n\n**研究生秘书联系方式**：\n- **郑老师** 2580019; hgzheng@xmu.edu.cn：负责博士及学术型硕士\n- **麻老师** 2580599; malinjian@xmu.edu.cn：负责通信系、智能系专业学位硕士\n- **陈老师** 2580025；cyq1015@xmu.edu.cn：负责计算机系、软工系专业学位硕士、国际硕士\n\n所有流程中，需要**“导师同意”或“导师签字同意”确认或邮件抄送导师**的，普通学生须经主导师（系统里的主导师）同意和签字确认；**联培学生则须经双方导师的同意、签字和确认**。流程中不再单独说明。",
     "roles": [
       {
         "value": "doctor",
@@ -51,7 +51,9 @@
           "applies_to": "all",
           "notes": [
             "之前已审核过则无须重复进行。按要求提供科研成果证明材料（图书馆检索证明+论文全文等），在系统上填写并请导师审核通过。",
-            "通过邮件提醒研究生秘书审核，邮件名格式：科研成果审核（专利/论文/竞赛）-姓名-学号。需要导师签字的，**务必导师手写签名后扫描或拍照**。"
+            "[博士生、硕士生申请学位所需的科研成果检索要求及系统填写注意事项](https://informatics.xmu.edu.cn/info/2301/178001.htm)",
+            "通过邮件提醒研究生秘书审核，邮件名格式：科研成果审核（专利/论文/竞赛）-姓名-学号。内容：注明需要审核的科研成果类型和数量。",
+            "需要导师签字的，**务必导师手写签名后扫描或拍照**。"
           ],
           "sub_tasks": [
             {
@@ -70,7 +72,7 @@
               "sort_order": 2
             },
             {
-              "title": "邮件提醒研究生秘书审核",
+              "title": "邮件提醒研究生秘书审核，邮件名格式：科研成果审核（专利/论文/竞赛）-姓名-学号。内容：注明需要审核的科研成果类型和数量。",
               "applies_to": "all",
               "sort_order": 3
             }
@@ -81,7 +83,7 @@
               "name": "建议完成",
               "deadline": "2026年3月底前",
               "applies_to": "all",
-              "remark": "尽早完成以免耽误后续流程"
+              "remark": "最迟答辩之前完成"
             }
           ],
           "sort_order": 2
@@ -90,32 +92,106 @@
           "title": "学分及前置学历审核",
           "applies_to": "all",
           "notes": [
-            "在研究生系统上检查学分是否全部完成，若有缺请及时补满；同时检查前置学历学位是否填写完整且通过审核。未通过的请及时联系相关研究生秘书。"
+            "在研究生系统上检查学分是否全部完成，若有缺请及时补满。",
+            "同时检查前置学历学位是否填写完整且通过审核。未通过的请及时联系相关研究生秘书。"
           ],
           "sub_tasks": [
             {
-              "title": "检查学分完成情况",
+              "title": "在研究生系统上检查学分是否全部完成，若有缺，请及时补全修满学分。",
               "applies_to": "all",
               "sort_order": 0
             },
             {
-              "title": "检查前置学历学位填写",
+              "title": "检查前置学历学位是否填写完整且通过审核，若有缺，请及时填写完整。",
               "applies_to": "all",
               "sort_order": 1
             },
             {
-              "title": "联系研究生秘书审核（如有问题）",
+              "title": "如有问题，联系研究生秘书审核",
               "applies_to": "all",
               "sort_order": 2
             }
           ],
-          "sub_files": [],
+          "sub_files": [
+            {
+              "name": "开题报告 《厦门大学硕士研究生开题报告审核表》",
+              "applies_to": "professional",
+              "format": "",
+              "naming_rule": "",
+              "description": "",
+              "sort_order": 0
+            },
+            {
+              "name": "开题报告 《学位论文选题报告书》",
+              "applies_to": "professional",
+              "format": "",
+              "naming_rule": "",
+              "description": "",
+              "sort_order": 1
+            },
+            {
+              "name": "中期报告 《厦门大学硕士研究生中期考核表》",
+              "applies_to": "professional",
+              "format": "",
+              "naming_rule": "",
+              "description": "",
+              "sort_order": 2
+            },
+            {
+              "name": "中期报告 《研究生中期考核情况统计表》",
+              "applies_to": "professional",
+              "format": "",
+              "naming_rule": "",
+              "description": "",
+              "sort_order": 3
+            },
+            {
+              "name": "实践环节 《全日制专业学位硕士研究生实习实践总结》",
+              "applies_to": "professional",
+              "format": "",
+              "naming_rule": "",
+              "description": "",
+              "sort_order": 4
+            },
+            {
+              "name": "实践环节 《厦门大学专业学位研究生专业实践报告表》",
+              "applies_to": "professional",
+              "format": "",
+              "naming_rule": "",
+              "description": "",
+              "sort_order": 5
+            },
+            {
+              "name": "学术讲座 《总结报告》",
+              "applies_to": "all",
+              "format": "",
+              "naming_rule": "",
+              "description": "",
+              "sort_order": 6
+            },
+            {
+              "name": "学术讲座 《学术讲座登记表》",
+              "applies_to": "all",
+              "format": "",
+              "naming_rule": "",
+              "description": "",
+              "sort_order": 7
+            },
+            {
+              "name": "学术讲座 《讲座截图》",
+              "applies_to": "all",
+              "format": "",
+              "naming_rule": "",
+              "description": "",
+              "sort_order": 8
+            }
+          ],
           "time_nodes": [
             {
               "name": "建议完成",
               "deadline": "2026年3月底前",
               "applies_to": "all",
-              "remark": ""
+              "remark": "最迟答辩之前完成"
             }
           ],
           "sort_order": 3
@@ -167,10 +243,11 @@
           "sort_order": 4
         },
         {
-          "title": "系统上进行送审申请",
+          "title": "本研系统进行送审申请",
           "applies_to": "all",
           "notes": [
-            "仅学分全部完成、预答辩完成（博士）且毕业图像采集已完成的同学方有权限申请。进入本研系统选择线上审核，导师审核通过后导出《**送审申请表**》**PDF** 电子版，并打印有导师签字的纸质版。",
+            "仅学分全部完成、预答辩完成（博士）且毕业图像采集已完成的同学方有权限申请。",
+            "进入本研系统选择线上审核，导师审核通过后导出《**送审申请表**》**PDF** 电子版，并打印有导师签字的纸质版。",
             "填写论文相关信息时，**严格按照各栏目字数要求填写，不要超过限定字数**。"
           ],
           "sub_tasks": [
@@ -180,7 +257,7 @@
               "sort_order": 0
             },
             {
-              "title": "选择线上审核",
+              "title": "选择**线上审核**",
               "applies_to": "all",
               "sort_order": 1
             },
@@ -230,29 +307,24 @@
           ],
           "sub_tasks": [
             {
-              "title": "将定稿论文存为PDF（不含原创性声明和著作权使用声明）",
+              "title": "将定稿论文存为PDF（不含原创性声明和著作权使用声明），按命名格式命名：学号_作者_篇名_专业_导师",
               "applies_to": "all",
               "sort_order": 0
             },
             {
-              "title": "按命名格式命名：学号_作者_篇名_专业_导师",
+              "title": "邮件发送至研究生秘书，抄送导师，附上《**送审申请表**》PDF",
               "applies_to": "all",
               "sort_order": 1
             },
             {
-              "title": "邮件发送至研究生秘书，抄送导师，附上《**送审申请表**》PDF",
-              "applies_to": "all",
-              "sort_order": 2
-            },
-            {
               "title": "仅当通过预答辩，方可进行定稿论文的查重申请",
               "applies_to": "doctor",
-              "sort_order": 3
+              "sort_order": 2
             },
             {
               "title": "预答辩的纸质材料在毕业论文答辩结束后提交材料时一并提交",
               "applies_to": "doctor",
-              "sort_order": 4
+              "sort_order": 3
             }
           ],
           "sub_files": [
@@ -284,62 +356,46 @@
           "sort_order": 6
         },
         {
-          "title": "定稿论文送审前形式审查",
-          "applies_to": "all",
-          "notes": [
-            "研究生秘书在送审前对电子版论文进行形式审查。**未通过形式审查的论文将予以退回修改，不予送审**。"
-          ],
-          "sub_tasks": [
-            {
-              "title": "提交电子版论文给研究生秘书进行形式审查",
-              "applies_to": "all",
-              "sort_order": 0
-            },
-            {
-              "title": "按审查意见修改（如未通过）",
-              "applies_to": "all",
-              "sort_order": 1
-            }
-          ],
-          "sub_files": [],
-          "time_nodes": [
-            {
-              "name": "预计",
-              "deadline": "2026年4月上旬",
-              "applies_to": "all",
-              "remark": "查重通过后进行"
-            }
-          ],
-          "sort_order": 7
-        },
-        {
           "title": "定稿论文送审（盲审）",
           "applies_to": "all",
           "notes": [
-            "所有论文均须盲审，**必须删除**学生姓名、导师姓名、致谢、发表论文作者部分等个人信息，按学院要求的学位论文格式排版。硕士评阅人不少于 **2名**，博士不少于 **3名**，专业型须有一篇由行（企）业专家评审。",
-            "教育部平台一般 **35个工作日** 完成博士评阅、**25个工作日** 完成硕士评阅，增评顺延 **15个工作日**。6月授学位一般3月底4月初前提交，12月授学位一般9月底10月初前提交。**超过时间节点的送审不能保证赶得及对应批次授学位**。",
+            "研究生秘书在送审前对电子版论文进行形式审查。**未通过形式审查的论文将予以退回修改，不予送审**。",
+            "所有论文均须盲审，**必须删除学生姓名、导师姓名、致谢、发表论文作者部分等个人信息，按学院要求的学位论文格式排版**。",
+            "硕士评阅人不少于 **2名**，博士不少于 **3名**，专业型须有一篇由行（企）业专家评审。",
+            "教育部平台一般 **35个工作日** 完成博士评阅、**25个工作日** 完成硕士评阅，增评顺延 **15个工作日**。",
+            "6月授学位一般3月底4月初前提交，12月授学位一般9月底10月初前提交。**超过时间节点的送审不能保证赶得及对应批次授学位**。",
             "**评阅结果要求**：\n- 所有评阅人认为论文已达到学位论文水平（评阅分数≥75分）：可进入答辩环节\n- 有1人给出\"论文须修改后答辩\"（70分≤评阅分数<75分）：修改30天后提交修改说明\n- 有2名或以上评阅人认为未达到水平（评阅分数<70分）：不可进入答辩环节\n- 有1名评阅人认为未达到水平：学院增聘2名评阅人"
           ],
           "sub_tasks": [
             {
-              "title": "准备盲审论文（删除个人信息）",
+              "title": "提交电子版论文给研究生秘书进行形式审查，按审查意见修改（如未通过）",
               "applies_to": "all",
               "sort_order": 0
             },
             {
-              "title": "填写《论文信息汇总表》",
+              "title": "准备盲审论文（删除个人信息：学生姓名、导师姓名、致谢、发表的科研论文的作者部分等）",
               "applies_to": "all",
               "sort_order": 1
             },
             {
-              "title": "准备摘要**TXT** 文档",
+              "title": "填写《论文信息汇总表》 TODO",
               "applies_to": "all",
               "sort_order": 2
             },
             {
-              "title": "三项材料发送给研究生秘书邮箱，抄送导师",
+              "title": "准备摘要**TXT** 文档",
               "applies_to": "all",
               "sort_order": 3
+            },
+            {
+              "title": "三项材料发送给研究生秘书邮箱，抄送导师",
+              "applies_to": "all",
+              "sort_order": 4
+            },
+            {
+              "title": "登录[学院系统](https://jwgs.xmu.edu.cn/H5) 输入学生学号，密码1234567，先修改密码，后提交盲审论文电子版。",
+              "applies_to": "professional",
+              "sort_order": 5
             }
           ],
           "sub_files": [
@@ -382,33 +438,8 @@
               "remark": "硕士约25个工作日，博士约35个工作日"
             }
           ],
-          "sort_order": 8
+          "sort_order": 7
         },
-        {
-          "title": "实践成果报告鉴定会",
-          "applies_to": "professional",
-          "notes": [
-            "以实践成果申请学位的专业型研究生必须完成"
-          ],
-          "sub_tasks": [],
-          "sub_files": [],
-          "time_nodes": [
-            {
-              "name": "截止",
-              "deadline": "答辩前完成",
-              "applies_to": "all",
-              "remark": ""
-            }
-          ],
-          "sort_order": 9
-        }
-      ],
-      "description": "完成论文定稿、查重、送审等准备工作"
-    },
-    {
-      "title": "二、答辩",
-      "sort_order": 2,
-      "tasks": [
         {
           "title": "博士论文质量核查",
           "applies_to": "doctor",
@@ -469,6 +500,36 @@
               "remark": "送审结果返回后进行"
             }
           ],
+          "sort_order": 8
+        }
+      ],
+      "description": "完成论文定稿、查重、送审等准备工作"
+    },
+    {
+      "title": "二、答辩",
+      "sort_order": 2,
+      "tasks": [
+        {
+          "title": "答辩准备",
+          "applies_to": "all",
+          "notes": [
+            "此版论文并非最终定稿，请勿打印过多份数，按需打印，以免浪费。",
+            "论文打印前务必按学校、学院的论文格式要求进行排版，对论文全文通读，差错率（含图、表、附录等）不得高于万分之二。（即3万字的论文，不影响核心内容的小差错处不得超过6处；5万字的论文，不影响核心内容的小差错处不得超过10处；明显的格式错误不在此万分之二范围内——即必须修改）"
+          ],
+          "sub_tasks": [
+            {
+              "title": "再次确认是否已完成科研成果审核。",
+              "applies_to": "all",
+              "sort_order": 0
+            },
+            {
+              "title": "制作答辩PPT。",
+              "applies_to": "all",
+              "sort_order": 1
+            }
+          ],
+          "sub_files": [],
+          "time_nodes": [],
           "sort_order": 1
         },
         {
@@ -528,39 +589,29 @@
           ],
           "sub_tasks": [
             {
-              "title": "确定答辩委员会成员、答辩秘书",
+              "title": "确定答辩委员会成员、答辩秘书，导师发送答辩秘书信息给研究生秘书",
               "applies_to": "all",
               "sort_order": 0
             },
             {
-              "title": "导师发送答辩秘书信息给研究生秘书",
+              "title": "答辩秘书提前至少 **5天**在系统填报答辩安排",
               "applies_to": "all",
               "sort_order": 1
             },
             {
-              "title": "答辩秘书提前至少 **5天**在系统填报答辩安排",
+              "title": "准备若干份打印好的答辩论文，份数建议：答辩委员会成员数+本人1本。",
               "applies_to": "all",
               "sort_order": 2
             },
             {
-              "title": "答辩秘书领取答辩档案袋",
-              "applies_to": "all",
-              "sort_order": 3
-            },
-            {
-              "title": "打印评定书、情况记录表、答辩决议空表",
-              "applies_to": "all",
-              "sort_order": 4
-            },
-            {
               "title": "制作答辩海报PPT",
               "applies_to": "doctor",
-              "sort_order": 5
+              "sort_order": 3
             },
             {
               "title": "在答辩前2个工作日发送至研究生秘书邮箱",
               "applies_to": "doctor",
-              "sort_order": 6
+              "sort_order": 4
             }
           ],
           "sub_files": [],
@@ -578,23 +629,19 @@
           "title": "正式答辩",
           "applies_to": "all",
           "notes": [
-            "请务必在每批次要求的答辩截止时间前完成答辩，**错过截止时间只能申请下一批次授学位**。答辩时由答辩秘书进行记录和录音，答辩通过后可依据答辩委员会意见继续修改论文。"
+            "请务必在每批次要求的答辩截止时间前完成答辩，**错过截止时间只能申请下一批次授学位**。",
+            "答辩时由答辩秘书进行记录和录音，答辩通过后可依据答辩委员会意见继续修改论文。"
           ],
           "sub_tasks": [
             {
-              "title": "按要求进行答辩",
+              "title": "按要求进行答辩，全程录音并记录提问问题",
               "applies_to": "all",
               "sort_order": 0
             },
             {
-              "title": "答辩秘书记录和录音",
-              "applies_to": "all",
-              "sort_order": 1
-            },
-            {
               "title": "依据答辩委员会意见继续修改论文",
               "applies_to": "all",
-              "sort_order": 2
+              "sort_order": 1
             }
           ],
           "sub_files": [],
@@ -692,14 +739,14 @@
               "applies_to": "all",
               "format": "扫描件/PDF",
               "naming_rule": "",
-              "description": "1份，附在查重邮件中。",
+              "description": "1份，附在查重邮件中。答辩主席签字。",
               "sort_order": 1
             }
           ],
           "time_nodes": [
             {
               "name": "截止",
-              "deadline": "2026年6月初",
+              "deadline": "2026年5月下旬",
               "applies_to": "all",
               "remark": "查重率须低于 **10%**"
             }
@@ -784,7 +831,7 @@
               "applies_to": "all",
               "format": "打印",
               "naming_rule": "",
-              "description": "1份，不得修改项目名称。院系名称填信息学院XXX系（全称）。",
+              "description": "1份，不得修改项目名称。院系名称填信息学院XXX系（全称）。学位授予时间按个人申请的最近批次的学位授予时间来填写：2026年预计学校授予学位时间包括：6月、12月。有无”栏：所有项均标注“√”，“份数”栏：除了《学位论文评阅书》和《学位论文评定书》按实际份数填写外，其余各项均填写为“1”；“研究生毕业登记表” “研究生登记表”、“研究生学籍登记表”、“研究生成绩登记表”、“学位授予决议”5栏：均可先打钩，“份数”为“1”，研究生秘书后续会补全此5项材料。",
               "sort_order": 0
             },
             {
@@ -832,7 +879,7 @@
               "applies_to": "all",
               "format": "纸质版",
               "naming_rule": "",
-              "description": "硕士2份，博士3份（增评按实际份数）。专硕由研究生秘书归档。",
+              "description": "硕士2份，博士3份（增评按实际份数）。存在增评时按实际收到的份数提交。专硕由研究生秘书归档，其他类别学生若由研究生秘书归档则不用提供。",
               "sort_order": 6
             },
             {
@@ -852,60 +899,12 @@
               "sort_order": 8
             },
             {
-              "name": "《学位论文答辩情况记录》",
-              "applies_to": "all",
-              "format": "纸质版",
-              "naming_rule": "",
-              "description": "1份。",
-              "sort_order": 9
-            },
-            {
-              "name": "《学位论文答辩决议》",
-              "applies_to": "all",
-              "format": "纸质版",
-              "naming_rule": "",
-              "description": "1份。",
-              "sort_order": 10
-            },
-            {
-              "name": "《学位申请表》",
-              "applies_to": "all",
-              "format": "彩色打印签字",
-              "naming_rule": "",
-              "description": "2份。",
-              "sort_order": 11
-            },
-            {
-              "name": "《科研成果汇总表》",
-              "applies_to": "all",
-              "format": "系统打印签字",
-              "naming_rule": "",
-              "description": "1份。",
-              "sort_order": 12
-            },
-            {
-              "name": "《学位授予决议》",
-              "applies_to": "all",
-              "format": "",
-              "naming_rule": "",
-              "description": "2份，个人无须提供，由研究生秘书在学位授予审批后放入。",
-              "sort_order": 13
-            },
-            {
-              "name": "论文修改说明",
-              "applies_to": "all",
-              "format": "纸质版，本人手写签名 + 导师签名确认",
-              "naming_rule": "",
-              "description": "1份。",
-              "sort_order": 14
-            },
-            {
               "name": "《学位论文优秀推荐评定书》",
               "applies_to": "all",
               "format": "纸质版",
               "naming_rule": "",
               "description": "3-7份。仅论文推荐为『优秀』的同学需要提交。",
-              "sort_order": 15
+              "sort_order": 9
             },
             {
               "name": "《学位论文优秀推荐决议书》",
@@ -913,7 +912,79 @@
               "format": "纸质版",
               "naming_rule": "",
               "description": "1份。仅论文推荐为『优秀』的同学需要提交。",
+              "sort_order": 10
+            },
+            {
+              "name": "《学位论文答辩情况记录》",
+              "applies_to": "all",
+              "format": "纸质版",
+              "naming_rule": "",
+              "description": "1份。专硕由研究生秘书归档。",
+              "sort_order": 11
+            },
+            {
+              "name": "《学位论文答辩决议》",
+              "applies_to": "all",
+              "format": "纸质版",
+              "naming_rule": "",
+              "description": "1份。",
+              "sort_order": 12
+            },
+            {
+              "name": "《学位申请表》",
+              "applies_to": "all",
+              "format": "彩色打印签字",
+              "naming_rule": "",
+              "description": "2份。",
+              "sort_order": 13
+            },
+            {
+              "name": "《科研成果汇总表》",
+              "applies_to": "all",
+              "format": "系统打印签字",
+              "naming_rule": "",
+              "description": "1份。",
+              "sort_order": 14
+            },
+            {
+              "name": "《学位授予决议》",
+              "applies_to": "all",
+              "format": "",
+              "naming_rule": "",
+              "description": "2份，个人无须提供，由研究生秘书在学位授予审批后放入。",
+              "sort_order": 15
+            },
+            {
+              "name": "学位论文正稿",
+              "applies_to": "all",
+              "format": "",
+              "naming_rule": "",
+              "description": "格式：图片需要彩印。\n博士生5本；硕士生4本。封面日期均须填写完整；每一本的前两页声明都需要**手写签名**。",
               "sort_order": 16
+            },
+            {
+              "name": "学位论文光盘一式1份",
+              "applies_to": "all",
+              "format": "",
+              "naming_rule": "",
+              "description": "格式：\n光盘笔写上系、专业、学号、姓名、提交时间（年和月份）；光盘内学位论文命名格式：10384_二级学科代码_学号_LW_姓名。硕士光盘中内容：论文终版的PDF和WORD（Latex无需）各1份（PDF版本：《原创性声明》和《著作权使用声明》两页请签名后扫描嵌入文档）；答辩录音。",
+              "sort_order": 17
+            },
+            {
+              "name": "《专业（领域）专业学位研究生实习实践报告表》",
+              "applies_to": "professional",
+              "format": "",
+              "naming_rule": "",
+              "description": "格式：纸质版。\n1份。个人无须提供，由研究生秘书归档；",
+              "sort_order": 18
+            },
+            {
+              "name": "论文修改说明",
+              "applies_to": "all",
+              "format": "纸质版，本人手写签名 + 导师签名确认",
+              "naming_rule": "",
+              "description": "1份。内容应体现论文评审返回意见、答辩委员会意见的回应，以及论文修改情况说明。论文修改说明需本人手写签名，导师同意后签名确认。",
+              "sort_order": 19
             },
             {
               "name": "预答辩材料（博士）",
@@ -921,7 +992,7 @@
               "format": "纸质版",
               "naming_rule": "",
               "description": "2份。含预答辩申请表（需附报告或PPT）和预答辩成绩评定表。",
-              "sort_order": 17
+              "sort_order": 20
             },
             {
               "name": "档案袋",
@@ -929,19 +1000,19 @@
               "format": "",
               "naming_rule": "",
               "description": "1个，封面填写完整，左上角写明学号及电话号码。",
-              "sort_order": 18
+              "sort_order": 21
             }
           ],
           "time_nodes": [
             {
               "name": "形式审查截止",
-              "deadline": "2026年6月上旬",
+              "deadline": "2026年5月下旬",
               "applies_to": "all",
               "remark": "先提交1本用于形式审查"
             },
             {
               "name": "全部材料截止",
-              "deadline": "2026年6月中旬",
+              "deadline": "2026年6月上旬",
               "applies_to": "all",
               "remark": "逾期不予提交至学位评定分委员会"
             }
@@ -949,83 +1020,43 @@
           "sort_order": 4
         },
         {
-          "title": "论文形式审查与提交全部论文",
+          "title": "其他",
           "applies_to": "all",
           "notes": [
-            "学位论文纸质版分2次提交。第一次仅需1本（无须胶装、黑白打印）用于形式审查；审查通过后在规定时间内提交全部份数（胶装、有图页面须彩印）。**逾期未提交不予提交至学位评定分委员会审议**。",
             "此外需另外准备1本自行送交图书馆。论文打印前务必按学校格式要求排版，**差错率不得高于万分之二**。"
           ],
           "sub_tasks": [
             {
-              "title": "提交1本论文用于形式审查（黑白、无须胶装）",
-              "applies_to": "all",
-              "sort_order": 0
-            },
-            {
-              "title": "等待形式审查结果",
-              "applies_to": "all",
-              "sort_order": 1
-            },
-            {
-              "title": "审查通过后提交全部论文（胶装、彩印）",
-              "applies_to": "all",
-              "sort_order": 2
-            },
-            {
               "title": "另外准备1本送交图书馆",
               "applies_to": "all",
-              "sort_order": 3
+              "sort_order": 0
             },
             {
               "title": "提交学位论文光盘",
               "applies_to": "all",
-              "sort_order": 4
+              "sort_order": 1
             }
           ],
           "sub_files": [
-            {
-              "name": "学位论文正稿（第一次）",
-              "applies_to": "all",
-              "format": "黑白打印，无须胶装",
-              "naming_rule": "",
-              "description": "1本，用于形式审查。前两页声明需手写签名。",
-              "sort_order": 0
-            },
-            {
-              "name": "学位论文正稿（第二次）",
-              "applies_to": "all",
-              "format": "胶装，有图页面须彩印，封面日期填写完整",
-              "naming_rule": "",
-              "description": "博士5本，硕士4本。前两页声明需手写签名，学位论文上的指导教师应与系统一致。",
-              "sort_order": 1
-            },
             {
               "name": "送交图书馆的论文",
               "applies_to": "all",
               "format": "同上",
               "naming_rule": "",
               "description": "1本，个人自行送交图书馆。",
-              "sort_order": 2
-            },
-            {
-              "name": "学位论文光盘",
-              "applies_to": "all",
-              "format": "光盘",
-              "naming_rule": "光盘笔写上系、专业、学号、姓名、提交时间",
-              "description": "1份。论文形式审查通过后与剩余论文一起提交。",
-              "sort_order": 3
+              "sort_order": 0
             }
           ],
           "time_nodes": [
             {
               "name": "形式审查",
-              "deadline": "2026年6月上旬",
+              "deadline": "2026年5月下旬",
               "applies_to": "all",
               "remark": "先提交1本黑白打印"
             },
             {
               "name": "全部论文截止",
-              "deadline": "2026年6月中旬",
+              "deadline": "2026年6月上旬",
               "applies_to": "all",
               "remark": "胶装+彩印，逾期不受理"
             }

@@ -265,9 +265,101 @@ export function mdToJson(text: string): FullData {
           i++
         }
         if (paraParts.length > 0) task.notes.push(paraParts.join('\n'))
+        else i++ // 未匹配任何已知模式且段落为空 → 跳过该行避免死循环
       }
     }
   }
 
   return result
+}
+
+// ──────────────────────────── 格式检查 ────────────────────────────
+
+export interface LintIssue {
+  line: number
+  level: 'error' | 'warning'
+  message: string
+}
+
+export function lintMd(text: string): LintIssue[] {
+  const lines = text.split('\n')
+  const issues: LintIssue[] = []
+
+  const warn = (lineno: number, msg: string) =>
+    issues.push({ line: lineno, level: 'warning', message: msg })
+  const error = (lineno: number, msg: string) =>
+    issues.push({ line: lineno, level: 'error', message: msg })
+
+  // 状态机：site → phase → task
+  let state: 'site' | 'phase_ready' | 'task_ready' | 'in_task' = 'site'
+
+  for (let idx = 0; idx < lines.length; idx++) {
+    const raw = lines[idx]
+    const s = raw.trim()
+    if (!s) continue
+
+    // 缩进行属于子文件块，跳过
+    if (raw.startsWith('  ') || raw.startsWith('\t')) continue
+
+    const lt = getLineType(raw)
+
+    if (lt === 'h1') {
+      if (state !== 'site') warn(idx + 1, 'H1 标题出现在非顶层位置')
+      state = 'phase_ready'
+      continue
+    }
+
+    if (lt === 'role') {
+      const parts = s.slice('> ROLE'.length).trim().split(/\s+/)
+      if (parts.length < 2) error(idx + 1, `ROLE 定义格式错误，至少需要 value 和 label: ${s}`)
+      continue
+    }
+
+    if (lt === 'phase') {
+      state = 'task_ready'
+      continue
+    }
+
+    if (lt === 'task_header') {
+      const m = s.match(/^###\s+(.+?)\s+\[(\w+)\]\s*$/)
+      if (!m) error(idx + 1, `任务标题格式错误，应为 ### 标题 [applies_to]: ${s}`)
+      state = 'in_task'
+      continue
+    }
+
+    // 以下是 task 内部内容
+    if (state !== 'in_task') continue
+
+    // 时间节点
+    const tm = s.match(/^-\s+@(.+?)\s+(\S+)\s+\[(\w+)\]/)
+    if (tm) continue
+
+    // 子任务
+    const stm = s.match(/^-\s+\[(\w+)\]\s+(.+)$/)
+    if (stm) continue
+
+    // 子文件（带 [applies_to]）
+    const sfm = s.match(/^-\s+(.+?)\s+\[(\w+)\]\s*$/)
+    if (sfm) continue
+
+    // 格式/命名行未缩进
+    if (s.startsWith('- 格式:') || s.startsWith('- 命名:')) {
+      warn(idx + 1, `格式/命名行未缩进（应在子文件下缩进 2 空格）: ${s}`)
+      continue
+    }
+
+    // 检查常见格式错误：缺少空格的 [tag]
+    const bracketM = s.match(/^-\s+.+(\[\w+\])/)
+    if (bracketM) {
+      const tagPos = s.indexOf(bracketM[1])
+      if (tagPos > 2 && s[tagPos - 1] !== ' ') {
+        error(idx + 1, `[applies_to] 前缺少空格: ${s}`)
+      }
+      continue
+    }
+
+    // 普通段落/注意事项行（包括 bullet 格式的说明文字）→ OK
+  }
+
+  return issues
 }

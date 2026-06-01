@@ -211,6 +211,9 @@ def parse_md(text: str) -> dict:
                     i += 1
                 if para_parts:
                     task["notes"].append("\n".join(para_parts))
+                else:
+                    # 未匹配任何已知模式且段落为空 → 跳过该行避免死循环
+                    i += 1
 
     return result
 
@@ -274,6 +277,104 @@ def to_md(data: dict) -> str:
     return "\n".join(lines)
 
 
+# ──────────────────────────── 格式检查 ────────────────────────────
+
+def lint_md(text: str) -> list[dict]:
+    """检查 Markdown 格式异常，返回 [{line, level, message}, ...]"""
+    lines = text.split("\n")
+    issues: list[dict] = []
+
+    def warn(lineno: int, msg: str):
+        issues.append({"line": lineno, "level": "warning", "message": msg})
+
+    def error(lineno: int, msg: str):
+        issues.append({"line": lineno, "level": "error", "message": msg})
+
+    # 状态机：site → phase → task → (notes | sub_task | sub_file | time_node)
+    state = "site"
+    in_indent_block = False  # 子文件缩进块
+
+    for idx, raw in enumerate(lines, 1):
+        s = raw.strip()
+        if not s:
+            in_indent_block = False
+            continue
+
+        # 缩进行属于子文件块，跳过
+        if raw.startswith("  ") or raw.startswith("\t"):
+            continue
+
+        lt = line_type(raw)
+
+        # ── h1 ──
+        if lt == "h1":
+            if state not in ("site",):
+                warn(idx, "H1 标题出现在非顶层位置")
+            state = "phase_ready"
+            continue
+
+        # ── role ──
+        if lt == "role":
+            parts = s[len("> ROLE"):].strip().split(None, 3)
+            if len(parts) < 2:
+                error(idx, f"ROLE 定义格式错误，至少需要 value 和 label: {s}")
+            continue
+
+        # ── phase ──
+        if lt == "phase":
+            state = "task_ready"
+            continue
+
+        # ── task_header ──
+        if lt == "task_header":
+            m = re.match(r"^###\s+(.+?)\s+\[(\w+)\]\s*$", s)
+            if not m:
+                error(idx, f"任务标题格式错误，应为 ### 标题 [applies_to]: {s}")
+            state = "in_task"
+            continue
+
+        # ── 以下是 task 内部内容 ──
+        if state != "in_task":
+            continue
+
+        # 时间节点
+        tm = re.match(r"^-\s+@(.+?)\s+(\S+)\s+\[(\w+)\]", s)
+        if tm:
+            if not s.endswith("]") and not re.search(r"\]\s+\S", s):
+                warn(idx, f"时间节点格式可能异常: {s}")
+            continue
+
+        # 子任务
+        stm = re.match(r"^-\s+\[(\w+)\]\s+(.+)$", s)
+        if stm:
+            continue
+
+        # 子文件（带 [applies_to]）
+        sfm = re.match(r"^-\s+(.+?)\s+\[(\w+)\]\s*$", s)
+        if sfm:
+            continue
+
+        # 格式/命名行（子文件缩进块的非缩进情况，兼容性处理）
+        if s.startswith("- 格式:") or s.startswith("- 命名:"):
+            warn(idx, f"格式/命名行未缩进（应在子文件下缩进 2 空格）: {s}")
+            continue
+
+        # 检查常见格式错误：缺少空格的 [tag]
+        bracket_m = re.match(r"^-\s+.+(\[\w+\])", s)
+        if bracket_m:
+            # 有 [tag] 但不匹配子文件/子任务/时间节点 → 可能缺少空格
+            tag_pos = s.index(bracket_m.group(1))
+            if tag_pos > 2 and s[tag_pos - 1] != " ":
+                error(idx, f"[applies_to] 前缺少空格: {s}")
+            else:
+                warn(idx, f"无法识别的列表项格式: {s}")
+            continue
+
+        # 普通段落/注意事项行（包括 bullet 格式的说明文字）→ OK
+
+    return issues
+
+
 # ──────────────────────────── CLI ────────────────────────────
 
 def main():
@@ -287,6 +388,9 @@ def main():
     p_tomd = sub.add_parser("to-md", help="JSON → Markdown")
     p_tomd.add_argument("input", help="输入 .json 文件路径")
     p_tomd.add_argument("-o", "--output", default=None, help="输出 .md 路径")
+
+    p_lint = sub.add_parser("lint", help="检查 Markdown 格式异常")
+    p_lint.add_argument("input", help="输入 .md 文件路径")
 
     args = parser.parse_args()
 
@@ -314,6 +418,22 @@ def main():
             print(f"Converted: {args.input} → {args.output}")
         else:
             print(output)
+
+    elif args.command == "lint":
+        with open(args.input, "r", encoding="utf-8") as f:
+            text = f.read()
+        issues = lint_md(text)
+        if not issues:
+            print(f"✓ {args.input} 格式检查通过，未发现问题")
+        else:
+            errors = sum(1 for i in issues if i["level"] == "error")
+            warnings = sum(1 for i in issues if i["level"] == "warning")
+            print(f"✗ {args.input} 发现 {errors} 个错误、{warnings} 个警告：\n")
+            for item in issues:
+                mark = "✗" if item["level"] == "error" else "⚠"
+                print(f"  {mark} 第 {item['line']} 行: {item['message']}")
+            if errors:
+                sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -24,3 +24,4 @@ dev = { cmd = "pixi run backend & pixi run frontend-dev", depends-on = ["fronten
 build = { cmd = "pixi run frontend-build" }
 md2json = { cmd = "python -m app.md_tool to-json", cwd = "backend" }
 json2md = { cmd = "python -m app.md_tool to-md", cwd = "backend" }
+md-lint = { cmd = "python -m app.md_tool lint", cwd = "backend" }
